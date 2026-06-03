@@ -1,0 +1,37 @@
+name: Update README TOC
+
+on:
+  push:
+    branches:
+      - JourneyForTawel
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-toc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Generate TOC
+        run: python3 tools/generate_toc.py
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "docs: update travel toc"
+          title: "docs: update travel toc"
+          branch: auto-toc-update
+          base: ${{ github.ref_name }}
+          delete-branch: true

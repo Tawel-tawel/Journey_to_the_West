@@ -1,0 +1,24 @@
+<section class="content-page">
+  <header class="page-header">
+    <p class="eyebrow">Archives</p>
+    <h1>全部文章</h1>
+    <p class="page-desc">共 <%= page.posts.length %> 篇</p>
+  </header>
+  <div class="archive-list">
+    <% page.posts.sort('-date').forEach(function(post) { %>
+      <article class="archive-item">
+        <time><%= date(post.date, 'YYYY-MM-DD') %></time>
+        <a href="<%- url_for(post.path) %>">
+          <h3><%= post.title %></h3>
+        </a>
+        <% if (post.tags && post.tags.length) { %>
+          <div class="archive-tags">
+            <% post.tags.forEach(function(tag) { %>
+              <span class="tag"><%= tag.name %></span>
+            <% }) %>
+          </div>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+menu:
+  首页: /
+  足迹: /travels/
+  地图: /map/
+  归档: /archives/
+  标签: /tags/
+  待补: /planned/
+  关于: /about/
+
+# 社交链接
+social:
+  github: https://github.com/Tawel-tawel
+  # 可后续添加 weibo, twitter 等
+
+# 首页显示的最近文章数量
+latest_posts: 6
