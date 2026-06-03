@@ -1,0 +1,32 @@
+name: Update README TOC
+
+on:
+  push:
+    branches:
+      - JourneyForTawel
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-toc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Generate TOC
+        run: python3 scripts/generate_toc.py
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update travel toc"
