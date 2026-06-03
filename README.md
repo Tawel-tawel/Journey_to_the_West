@@ -9,7 +9,7 @@
 - [亚洲](./Asia/)
 - [地点 README 模板](./templates/place_readme_template.md)
 - [Hexo 博客内容](./source/)
-- [脚本工具](./scripts/)
+- [脚本工具](./tools/)
 
 ## Hexo 博客
 
