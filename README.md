@@ -37,7 +37,7 @@
 
 ## 计划补充
 
-以下地点已经去过，但尚未整理成完整游记（遗憾）。后续补充时，将从 [地点 README 模板](./templates/place_readme_template.md) 复制结构，再添加照片和攻略。
+以下地点已经去过，但尚未整理成完整游记（sad）。后续补充时，将从 [地点 README 模板](./templates/place_readme_template.md) 复制结构，再添加照片和攻略。
 
 | 地区 | 地点 | 当前状态 |
 | --- | --- | --- |
