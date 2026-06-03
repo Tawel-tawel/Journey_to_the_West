@@ -227,3 +227,11 @@ __marimo__/
 *.mp4
 *.tmp
 *.bak
+.opencode
+
+# Node / Hexo
+node_modules/
+public/
+.deploy_git/
+db.json
+.env.local

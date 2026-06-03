@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= page.title %> | <%= config.title %></title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --bg: #f7f3ec; --paper: #fffdf8; --ink: #202124;
+      --muted: #6b6258; --line: #ded4c7; --accent: #276b73;
+      --accent-strong: #1e4f55;
+    }
+    #map-header {
+      display: flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 20px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      gap: 16px;
+      z-index: 1000;
+      position: relative;
+    }
+    #map-header .brand { font-weight: 800; font-size: 16px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+    #map-header .nav-links { display: flex; gap: 14px; font-size: 13px; }
+    #map-header .nav-links a { color: var(--muted); text-decoration: none; }
+    #map-header .nav-links a:hover { color: var(--accent); }
+    #map-header .map-title { margin-left: auto; font-size: 13px; color: var(--muted); }
+    #map-wrapper { display: flex; height: calc(100vh - 52px); width: 100%; }
+    #sidebar { width: 260px; min-width: 260px; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 12px; }
+    #sidebar h2 { font-size: 15px; margin-bottom: 10px; color: var(--ink); }
+    .tree-ul { list-style: none; padding-left: 0; }
+    .tree-ul .tree-ul { padding-left: 16px; }
+    .tree-ul.collapsed { display: none; }
+    .tree-li { margin: 1px 0; }
+    .tree-label {
+      display: flex; align-items: center; gap: 4px;
+      padding: 3px 6px; border-radius: 4px;
+      font-size: 13px; cursor: default; color: var(--muted);
+      user-select: none;
+    }
+    .tree-label.visited { color: var(--ink); cursor: pointer; }
+    .tree-label.visited:hover { background: rgba(39, 107, 115, 0.10); color: var(--accent-strong); }
+    .tree-icon { font-size: 14px; flex-shrink: 0; }
+    .tree-toggle {
+      flex-shrink: 0; width: 16px; height: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; cursor: pointer; border-radius: 3px;
+      color: var(--muted); transition: transform 0.15s;
+    }
+    .tree-toggle:hover { background: var(--line); }
+    .tree-toggle.expanded { transform: rotate(90deg); }
+    .tree-count { margin-left: auto; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+    #map { flex: 1; height: 100%; }
+    .leaflet-popup-content { font-size: 13px; line-height: 1.6; }
+    .leaflet-popup-content a { color: var(--accent-strong); font-weight: 700; }
+    @media (max-width: 640px) { #sidebar { display: none; } #map-header .nav-links { display: none; } }
+  </style>
+</head>
+<body>
+  <div id="map-header">
+    <a class="brand" href="<%- url_for('/') %>">Journey to the West</a>
+    <div class="nav-links">
+      <% const menu = theme.menu || {}; %>
+      <% Object.keys(menu).forEach(function(name) { %>
+        <a href="<%- url_for(menu[name]) %>"><%= name %></a>
+      <% }) %>
+    </div>
+    <div class="map-title">🌍 足迹地图</div>
+  </div>
+
+  <div id="map-wrapper">
+    <div id="sidebar">
+      <h2>📍 足迹目录</h2>
+      <ul class="tree-ul" id="tree-root"></ul>
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function() {
+      var locations = [
+        { name: '桂林', path: '<%- url_for("/travels/guilin/") %>', lat: 25.2736, lng: 110.2900, continent: '亚洲', country: '中国', province: '广西', desc: '山水甲天下' },
+        { name: '柳州', path: '<%- url_for("/travels/liuzhou/") %>', lat: 24.3263, lng: 109.4280, continent: '亚洲', country: '中国', province: '广西', desc: '螺蛳粉之乡' },
+        { name: '海口', path: '<%- url_for("/travels/haikou/") %>', lat: 20.0440, lng: 110.3580, continent: '亚洲', country: '中国', province: '海南', desc: '椰风海韵' },
+        { name: '锦里', path: '<%- url_for("/travels/jinli/") %>', lat: 30.6476, lng: 104.0478, continent: '亚洲', country: '中国', province: '四川', city: '成都', desc: '武侯祠旁古街' },
+        { name: '宽窄巷子', path: '<%- url_for("/travels/kuanzhai-alley/") %>', lat: 30.6716, lng: 104.0580, continent: '亚洲', country: '中国', province: '四川', city: '成都', desc: '老成都院落文化' },
+        { name: '九寨沟', path: '<%- url_for("/travels/jiuzhaigou/") %>', lat: 33.2611, lng: 104.2386, continent: '亚洲', country: '中国', province: '四川', city: '阿坝州', desc: '人间仙境' },
+        { name: '北京', path: '<%- url_for("/travels/beijing/") %>', lat: 39.9042, lng: 116.4074, continent: '亚洲', country: '中国', province: '北京', desc: '首都古都' },
+        { name: '长春', path: '<%- url_for("/travels/changchun/") %>', lat: 43.8966, lng: 125.3262, continent: '亚洲', country: '中国', province: '吉林', desc: '北国春城' },
+        { name: '松原', path: '<%- url_for("/travels/songyuan/") %>', lat: 45.1298, lng: 124.8260, continent: '亚洲', country: '中国', province: '吉林', desc: '查干湖冬捕' },
+        { name: '吉林市', path: '<%- url_for("/travels/jilin-city/") %>', lat: 43.8378, lng: 126.5486, continent: '亚洲', country: '中国', province: '吉林', desc: '雾凇之都' }
+      ];
+
+      var map = L.map('map', { center: [35, 110], zoom: 4, scrollWheelZoom: true, zoomControl: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18
+      }).addTo(map);
+
+      var markers = [];
+      locations.forEach(function(loc) {
+        var m = L.marker([loc.lat, loc.lng]).addTo(map);
+        m.bindPopup('<strong>' + loc.name + '</strong><br>' + (loc.desc || '') + '<br><a href="' + loc.path + '">查看游记 →</a>');
+        markers.push(m);
+      });
+
+      function buildTree(locs) {
+        var root = { name: '世界', children: [] };
+        locs.forEach(function(loc) {
+          var c = fO(root, 'continent', loc.continent || '亚洲');
+          var co = fO(c, 'country', loc.country);
+          var p = fO(co, 'province', loc.province);
+          if (loc.city) { var ci = fO(p, 'city', loc.city); ci.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true }); }
+          else { p.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true }); }
+        });
+        return root;
+      }
+      function fO(p, t, n) {
+        for (var i = 0; i < (p.children || []).length; i++) { if (p.children[i].name === n) return p.children[i]; }
+        var node = { name: n, children: [] }; p.children.push(node); return node;
+      }
+      function countLeaves(n) { if (n.leaf) return 1; return (n.children||[]).reduce(function(s,c){return s+countLeaves(c);}, 0); }
+
+      function renderTree(node, container) {
+        var ul = document.createElement('ul'); ul.className = 'tree-ul';
+        (node.children || []).forEach(function(child) {
+          var li = document.createElement('li'); li.className = 'tree-li';
+          var label = document.createElement('div'); label.className = 'tree-label';
+
+          if (child.leaf) {
+            label.classList.add('visited');
+            var icon = document.createElement('span');
+            icon.className = 'tree-icon';
+            icon.textContent = '📍';
+            label.appendChild(icon);
+            label.appendChild(document.createTextNode(' ' + child.name));
+            label.addEventListener('click', function() { map.setView([child.lat, child.lng], 12, { animate: true }); });
+          } else {
+            var childUl = document.createElement('ul');
+            childUl.className = 'tree-ul';
+            childUl.classList.add('collapsed');
+            renderTree(child, childUl);
+
+            var toggle = document.createElement('span');
+            toggle.className = 'tree-toggle';
+            toggle.textContent = '▶';
+            (function(tog, cul) {
+              toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                cul.classList.toggle('collapsed');
+                tog.classList.toggle('expanded');
+              });
+            })(toggle, childUl);
+            label.appendChild(toggle);
+
+            var icon = document.createElement('span');
+            icon.className = 'tree-icon';
+            icon.textContent = '📁';
+            label.appendChild(icon);
+            label.appendChild(document.createTextNode(' ' + child.name));
+
+            var cnt = document.createElement('span'); cnt.className = 'tree-count';
+            cnt.textContent = countLeaves(child) + '处';
+            label.appendChild(cnt);
+
+            li.appendChild(childUl);
+          }
+          li.appendChild(label);
+          ul.appendChild(li);
+        });
+        if (container) container.appendChild(ul);
+      }
+
+      var tree = buildTree(locations);
+      renderTree(tree, document.getElementById('tree-root'));
+
+      var rootUl = document.querySelector('#tree-root > .tree-ul');
+      if (rootUl) rootUl.classList.remove('collapsed');
+
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.15));
+      window.addEventListener('resize', function() { map.invalidateSize(); });
+    })();
+  </script>
+</body>
+</html>

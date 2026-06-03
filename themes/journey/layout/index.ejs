@@ -1,0 +1,69 @@
+<section class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Travel Archive</p>
+    <h1>把走过的地方，整理成可以回看的路。</h1>
+    <p class="hero-copy">用脚步丈量世界，用 Git 管理记忆。按大洲 → 国家 → 省/州 → 城市 → 地点的层级整理游记、攻略、影像和旅行清单。</p>
+    <div class="hero-actions">
+      <a class="button primary" href="<%- url_for('/travels/') %>">查看足迹</a>
+      <a class="button" href="<%- url_for('/archives/') %>">全部文章</a>
+      <a class="button" href="<%- url_for('/planned/') %>">待补清单</a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-heading">
+    <p class="eyebrow">Latest</p>
+    <h2>最近文章</h2>
+    <a class="section-more" href="<%- url_for('/archives/') %>">查看全部 →</a>
+  </div>
+  <div class="post-list">
+    <% if (site.posts.length) { %>
+      <% var limit = theme.latest_posts || 6; %>
+      <% site.posts.sort('-date').limit(limit).forEach(function(post) { %>
+        <article class="post-card">
+          <a href="<%- url_for(post.path) %>">
+            <h3><%= post.title %></h3>
+            <p><%= post.excerpt ? strip_html(post.excerpt).substring(0, 90) : '待补充。' %></p>
+            <% if (post.tags && post.tags.length) { %>
+              <div class="post-card-tags">
+                <% post.tags.forEach(function(tag) { %>
+                  <span class="tag"><%= tag.name %></span>
+                <% }) %>
+              </div>
+            <% } %>
+            <time><%= date(post.date, 'YYYY-MM-DD') %></time>
+          </a>
+        </article>
+      <% }) %>
+    <% } else { %>
+      <p class="empty">还没有发布文章。可以先从 <code>source/_posts</code> 开始写第一篇。</p>
+    <% } %>
+  </div>
+</section>
+
+<section class="section region-section">
+  <div class="section-heading">
+    <p class="eyebrow">Recently Updated</p>
+    <h2>最近更新</h2>
+    <a class="section-more" href="<%- url_for('/travels/') %>">查看全部 →</a>
+  </div>
+  <div class="region-list">
+    <% var travelPages = site.pages.filter(function(p) {
+      return p.path.startsWith('travels/') && p.path !== 'travels/index.html';
+    }).sort(function(a, b) {
+      return (b.updated || b.date) - (a.updated || a.date);
+    }).slice(0, 6); %>
+    <% travelPages.forEach(function(page) { %>
+      <a class="region-card" href="<%- url_for(page.path) %>">
+        <span class="region-name"><%= page.title %></span>
+        <span class="region-location">
+          <% if (page.tags && page.tags.length) { %>
+            <%= page.tags.map(function(t){return t.name}).slice(0, 2).join(' · ') %>
+          <% } %>
+        </span>
+        <span class="region-time"><%= date(page.updated || page.date, 'MM-dd') %></span>
+      </a>
+    <% }) %>
+  </div>
+</section>

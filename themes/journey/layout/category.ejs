@@ -1,0 +1,16 @@
+<section class="content-page">
+  <header class="page-header">
+    <p class="eyebrow">Category</p>
+    <h1><%= page.category %></h1>
+  </header>
+  <div class="post-list">
+    <% page.posts.sort('-date').forEach(function(post) { %>
+      <article class="post-card">
+        <a href="<%- url_for(post.path) %>">
+          <h3><%= post.title %></h3>
+          <time><%= date(post.date, 'YYYY-MM-DD') %></time>
+        </a>
+      </article>
+    <% }) %>
+  </div>
+</section>

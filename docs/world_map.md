@@ -4,15 +4,16 @@
 
 ## 当前足迹
 
-- 中国 / 广西 / 桂林
-- 中国 / 广西 / 柳州
-- 中国 / 海南 / 海口
-- 中国 / 四川 / 成都
-- 中国 / 四川 / 阿坝藏族羌族自治州 / 九寨沟
-- 中国 / 北京
-- 中国 / 吉林 / 长春
-- 中国 / 吉林 / 松原
-- 中国 / 吉林 / 吉林市
+- [中国 / 广西 / 桂林](../source/travels/guilin/)
+- [中国 / 广西 / 柳州](../source/travels/liuzhou/)
+- [中国 / 海南 / 海口](../source/travels/haikou/)
+- [中国 / 四川 / 成都 / 锦里](../source/travels/jinli/)
+- [中国 / 四川 / 成都 / 宽窄巷子](../source/travels/kuanzhai-alley/)
+- [中国 / 四川 / 阿坝 / 九寨沟](../source/travels/jiuzhaigou/)
+- [中国 / 北京](../source/travels/beijing/)
+- [中国 / 吉林 / 长春](../source/travels/changchun/)
+- [中国 / 吉林 / 松原](../source/travels/songyuan/)
+- [中国 / 吉林 / 吉林市](../source/travels/jilin-city/)
 
 ## 维护方式
 

@@ -1,0 +1,51 @@
+<% if (page.layout === 'map') { %>
+  <%- body %>
+<% } else { %>
+<!doctype html>
+<html lang="<%= config.language || 'zh-CN' %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= page.title ? page.title + ' | ' + config.title : config.title %></title>
+  <meta name="description" content="<%= page.description || config.description || '' %>">
+  <meta name="keywords" content="<%= (page.tags ? page.tags.map(function(t){return t.name}).join(', ') : '') || config.keywords || '' %>">
+  <%- css('css/style') %>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="brand" href="<%- url_for('/') %>">
+        <span class="brand-title"><%= config.title %></span>
+        <span class="brand-subtitle"><%= config.subtitle %></span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links">
+        <% const menu = theme.menu || {}; %>
+        <% Object.keys(menu).forEach(function(name) { %>
+          <a href="<%- url_for(menu[name]) %>"><%= name %></a>
+        <% }) %>
+      </div>
+    </nav>
+  </header>
+
+  <main class="site-main">
+    <%- body %>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© <%= new Date().getFullYear() %> <%= config.author %>. 用脚步丈量世界，用 Git 管理记忆。</p>
+      <% if (theme.social) { %>
+        <div class="footer-links">
+          <% Object.keys(theme.social).forEach(function(name) { %>
+            <a href="<%= theme.social[name] %>" target="_blank" rel="noopener"><%= name %></a>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </footer>
+</body>
+</html>
+<% } %>

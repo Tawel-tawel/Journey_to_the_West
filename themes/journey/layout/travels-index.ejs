@@ -1,0 +1,138 @@
+<section class="content-page">
+  <header class="page-header">
+    <p class="eyebrow">Travels</p>
+    <h1>足迹</h1>
+    <p class="page-desc">按大洲 → 国家 → 省/州 → 城市 → 地点 的层级整理</p>
+  </header>
+
+  <%
+    var travelPages = site.pages.filter(function(p) {
+      return p.source.startsWith('travels/') && p.source !== 'travels/index.md';
+    });
+
+    function buildPath(page) {
+      var continent = page.continent || '亚洲';
+      var country = page.country || '中国';
+      var tags = page.tags || [];
+      var p, c, l;
+      if (tags.length >= 3) { p = tags[0]; c = tags[1]; l = page.title; }
+      else if (tags.length === 2) { p = tags[0]; c = tags[1]; l = page.title; }
+      else if (tags.length === 1) { p = tags[0]; c = page.title; l = page.title; }
+      else { p = page.title; c = page.title; l = page.title; }
+
+      var raw = [continent, country, p, c, l];
+      var out = [raw[0]];
+      for (var i = 1; i < raw.length; i++) {
+        if (raw[i] !== out[out.length - 1]) out.push(raw[i]);
+      }
+      return out;
+    }
+
+    var TIER_ICONS = ['🌏', '🇨🇳', '🏔', '🏙', '📍'];
+
+    var root = { ch: [] };
+
+    travelPages.forEach(function(page) {
+      var path = buildPath(page);
+      var node = root;
+      for (var i = 0; i < path.length; i++) {
+        var seg = path[i];
+        var found = false;
+        for (var j = 0; j < node.ch.length; j++) {
+          if (node.ch[j].n === seg) { node = node.ch[j]; found = true; break; }
+        }
+        if (!found) {
+          var leaf = (i === path.length - 1);
+          var child = { n: seg, ch: [], page: leaf ? page : null };
+          node.ch.push(child);
+          node = child;
+        } else if (i === path.length - 1 && page && !node.page) {
+          node.page = page;
+        }
+      }
+    });
+
+    function sortTree(node) {
+      if (node.ch) {
+        node.ch.sort(function(a, b) {
+          var aLeaf = !!a.page && a.ch.length === 0;
+          var bLeaf = !!b.page && b.ch.length === 0;
+          if (aLeaf && !bLeaf) return 1;
+          if (!aLeaf && bLeaf) return -1;
+          return a.n.localeCompare(b.n, 'zh-CN');
+        });
+        node.ch.forEach(sortTree);
+      }
+    }
+    sortTree(root);
+
+    function leafCount(node) {
+      if (node.page && node.ch.length === 0) return 1;
+      var c = 0;
+      if (node.ch) node.ch.forEach(function(n){ c += leafCount(n); });
+      return c;
+    }
+
+    function icon(depth) {
+      return TIER_ICONS[Math.min(depth, TIER_ICONS.length - 1)] || '📁';
+    }
+  %>
+
+  <% function recurse(children, depth) { if (!children || !children.length) return; %>
+    <ul class="travel-tree-ul<%= depth > 0 ? ' collapsed' : '' %>">
+    <% children.forEach(function(child) { %>
+      <li class="travel-tree-li">
+        <% if (child.page && child.ch.length === 0) { %>
+          <a class="travel-tree-label leaf" href="<%- url_for(child.page.path) %>">
+            <span class="travel-tree-icon"><%= icon(depth) %></span>
+            <%= child.page.title %>
+            <span class="travel-tree-meta"><%= date(child.page.updated || child.page.date, 'MM-dd') %></span>
+          </a>
+        <% } else { %>
+          <div class="travel-tree-label branch">
+            <span class="travel-tree-toggle">▶</span>
+            <span class="travel-tree-icon"><%= icon(depth) %></span>
+            <%= child.n %>
+            <span class="travel-tree-count"><%= leafCount(child) %> 个地点</span>
+          </div>
+          <% recurse(child.ch, depth + 1); %>
+        <% } %>
+      </li>
+    <% }) %>
+    </ul>
+  <% } %>
+
+  <div class="travel-tree">
+    <ul class="travel-tree-ul">
+      <li class="travel-tree-li">
+        <div class="travel-tree-label root">
+          <span class="travel-tree-toggle">▶</span>
+          <span class="travel-tree-icon">🌏</span> 世界
+        </div>
+        <% recurse(root.ch, 0); %>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    (function(){
+      var toggles = document.querySelectorAll('.travel-tree-toggle');
+      for (var i = 0; i < toggles.length; i++) {
+        toggles[i].addEventListener('click', function(e) {
+          e.stopPropagation();
+          var ul = this.closest('.travel-tree-li').querySelector(':scope > .travel-tree-ul');
+          if (ul) { ul.classList.toggle('collapsed'); this.classList.toggle('expanded'); }
+        });
+      }
+      var worldUl = document.querySelector('.travel-tree > .travel-tree-ul > .travel-tree-li > .travel-tree-ul');
+      if (worldUl) { worldUl.classList.remove('collapsed'); }
+      var worldToggle = document.querySelector('.travel-tree-label.root .travel-tree-toggle');
+      if (worldToggle) { worldToggle.classList.add('expanded'); }
+    })();
+  </script>
+
+  <div class="travel-actions">
+    <a class="button" href="<%- url_for('/map/') %>">🗺 查看地图</a>
+    <a class="button" href="<%- url_for('/planned/') %>">📋 待补清单</a>
+  </div>
+</section>

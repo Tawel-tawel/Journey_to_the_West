@@ -8,7 +8,53 @@
 - [足迹地图](./docs/world_map.md)
 - [亚洲](./Asia/)
 - [地点 README 模板](./templates/place_readme_template.md)
+- [Hexo 博客内容](./source/)
 - [脚本工具](./scripts/)
+
+## Hexo 博客
+
+这个仓库现在同时是一个 Hexo 博客项目：
+
+- `Asia/`：原始旅行资料库，按大洲、国家、省市、地点保存 `README.md`、`tips.md` 和照片。
+- `source/`：Hexo 站点内容，用于生成网页。
+- `themes/journey/`：仓库自带的轻量主题，先保证能本地预览和部署，后续可以再换更漂亮的主题。
+- `scaffolds/`：Hexo 新建文章和页面时使用的模板。
+
+### 本地预览
+
+```bash
+npm install
+npm run server
+```
+
+然后访问 `http://localhost:4000/Journey_to_the_West/`。
+
+### 生成静态网页
+
+```bash
+npm run build
+```
+
+生成结果会放在 `public/`，该目录不会提交到源码分支。
+
+### 部署到 GitHub Pages
+
+当前 `_config.yml` 的部署目标是：
+
+```yaml
+deploy:
+  type: git
+  repo: https://github.com/Tawel-tawel/Journey_to_the_West.git
+  branch: gh-pages
+```
+
+执行：
+
+```bash
+npm run deploy
+```
+
+这会生成静态页面并推送到 `gh-pages` 分支。GitHub 仓库的 Pages 设置里需要选择 `gh-pages` 分支作为发布来源。
 
 ## 当前存档
 
@@ -33,6 +79,29 @@
       - [Chengdu](./Asia/China/Sichuan/Chengdu/)
         - [Jinli](./Asia/China/Sichuan/Chengdu/Jinli/)
         - [Kuanzhai Alley](./Asia/China/Sichuan/Chengdu/Kuanzhai_Alley/)
+- [scaffolds](./scaffolds/)
+- [source](./source/)
+  - [ posts](./source/_posts/)
+  - [about](./source/about/)
+  - [guide](./source/guide/)
+  - [planned](./source/planned/)
+  - [travels](./source/travels/)
+    - [beijing](./source/travels/beijing/)
+    - [changchun](./source/travels/changchun/)
+    - [guilin](./source/travels/guilin/)
+    - [haikou](./source/travels/haikou/)
+    - [jilin-city](./source/travels/jilin-city/)
+    - [jinli](./source/travels/jinli/)
+    - [jiuzhaigou](./source/travels/jiuzhaigou/)
+    - [kuanzhai-alley](./source/travels/kuanzhai-alley/)
+    - [liuzhou](./source/travels/liuzhou/)
+    - [songyuan](./source/travels/songyuan/)
+- [themes](./themes/)
+  - [journey](./themes/journey/)
+    - [layout](./themes/journey/layout/)
+    - [source](./themes/journey/source/)
+      - [css](./themes/journey/source/css/)
+      - [js](./themes/journey/source/js/)
 <!-- TOC:END -->
 
 ## 计划补充
@@ -67,7 +136,9 @@
 ```bash
 git clone https://github.com/Tawel-tawel/Journey_to_the_West.git
 cd Journey_to_the_West
-python3 scripts/generate_toc.py
+python3 tools/generate_toc.py
+npm install
+npm run server
 ```
 
 建议使用 VS Code + Markdown Preview Enhanced 进行阅读和整理。

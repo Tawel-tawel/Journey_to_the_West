@@ -1,0 +1,14 @@
+<section class="content-page">
+  <header class="page-header">
+    <p class="eyebrow">Tags</p>
+    <h1>所有标签</h1>
+  </header>
+  <div class="tag-cloud">
+    <% page.tags.sort('name').forEach(function(tag) { %>
+      <a class="tag-cloud-item" href="<%- url_for(tag.path) %>" style="font-size: <%= 14 + Math.min(tag.posts.length, 10) %>px;">
+        <%= tag.name %>
+        <span class="tag-count">(<%= tag.posts.length %>)</span>
+      </a>
+    <% }) %>
+  </div>
+</section>
