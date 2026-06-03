@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-toc:
@@ -26,8 +27,11 @@ jobs:
       - name: Generate TOC
         run: python3 tools/generate_toc.py
 
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "docs: update travel toc"
-          branch: main
+          commit-message: "docs: update travel toc"
+          title: "docs: update travel toc"
+          branch: auto-toc-update
+          base: ${{ github.ref_name }}
+          delete-branch: true

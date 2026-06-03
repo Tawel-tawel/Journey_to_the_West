@@ -1,4 +1,4 @@
-# Scripts
+# Tools
 
 辅助脚本目录。
 

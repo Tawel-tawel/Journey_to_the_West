@@ -6,6 +6,7 @@ Hexo pages stay untouched.
 """
 
 from __future__ import annotations
+from datetime import date as Date
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,8 @@ class Travel:
     slug: str
     source: Path
     tags: tuple[str, ...]
+    continent: str = "亚洲"
+    country: str = "中国"
 
 
 TRAVELS = (
@@ -40,13 +43,13 @@ def front_matter(travel: Travel) -> str:
     tags = "\n".join(f"  - {tag}" for tag in travel.tags)
     return f"""---
 title: {travel.title}
-date: 2026-06-03
+date: {Date.today().isoformat()}
+continent: {travel.continent}
+country: {travel.country}
 categories:
   - travel
 tags:
 {tags}
----
-
 """
 
 

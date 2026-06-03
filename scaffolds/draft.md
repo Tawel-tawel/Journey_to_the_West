@@ -1,6 +1,8 @@
 ---
 title: {{ title }}
 date: {{ date }}
+continent:
+country:
 categories:
   - travel
 tags:

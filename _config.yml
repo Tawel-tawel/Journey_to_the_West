@@ -35,6 +35,9 @@ filename_case: 0
 ignore:
   - 'tools/**/*'
   - 'templates/**/*'
+  - 'scaffolds/**/*'
+  - 'docs/**/*'
+  - 'assets/**/*'
 render_drafts: false
 post_asset_folder: true
 relative_link: false

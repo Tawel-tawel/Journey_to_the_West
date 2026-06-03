@@ -17,8 +17,14 @@ IGNORE_DIRS = {
     "assets",
     "docs",
     "photos",
+    "node_modules",
+    "public",
+    "scaffolds",
     "scripts",
+    "source",
     "templates",
+    "themes",
+    "tools",
 }
 
 ORDER = [

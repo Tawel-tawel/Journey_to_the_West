@@ -10,6 +10,7 @@
   <meta name="description" content="<%= page.description || config.description || '' %>">
   <meta name="keywords" content="<%= (page.tags ? page.tags.map(function(t){return t.name}).join(', ') : '') || config.keywords || '' %>">
   <%- css('css/style') %>
+  <%- js('js/index') %>
 </head>
 <body>
   <header class="site-header">

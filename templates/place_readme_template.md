@@ -1,3 +1,16 @@
+<!--
+创建新地点时，请确保在 Asia/ 下按 大洲/国家/省份/城市 创建目录。
+如果要同步为 Hexo 博客页面，运行 tools/sync_travels_to_hexo.py。
+Hexo 页面需要以下 frontmatter 字段（脚本自动生成）：
+  continent: 亚洲
+  country: 中国
+  categories:
+    - travel
+  tags:
+    - {省份}
+    - {城市/地区}
+-->
+
 # {地点名称}
 
 > {一句话简介：这个地方给你的第一印象}
