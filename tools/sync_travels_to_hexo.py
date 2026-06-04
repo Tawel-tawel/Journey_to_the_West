@@ -67,7 +67,18 @@ def sync_travel(travel: Travel) -> None:
     target_dir = SOURCE_TRAVELS / travel.slug
     target_dir.mkdir(parents=True, exist_ok=True)
     body = strip_first_heading(travel.source.read_text(encoding="utf-8"))
+    body = body.replace("./tips.md", "./tips")
     (target_dir / "index.md").write_text(front_matter(travel) + body, encoding="utf-8")
+
+    tips_src = travel.source.parent / "tips.md"
+    if tips_src.exists():
+        tips_fm = f"""---
+title: {travel.title} · 攻略
+layout: page
+---
+
+"""
+        (target_dir / "tips.md").write_text(tips_fm + tips_src.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 def main() -> None:

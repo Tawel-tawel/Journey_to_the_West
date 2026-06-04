@@ -3,12 +3,35 @@
     <p class="eyebrow">Tags</p>
     <h1>所有标签</h1>
   </header>
+  <%
+    var tagMap = {};
+    site.tags.forEach(function(tag) {
+      tagMap[tag.name] = { name: tag.name, count: tag.posts.length, path: tag.path };
+    });
+    site.pages.forEach(function(p) {
+      if (p.tags && p.tags.length) {
+        (Array.isArray(p.tags) ? p.tags : []).forEach(function(t) {
+          var name = typeof t === 'string' ? t : t.name;
+          if (tagMap[name]) { tagMap[name].count++; }
+          else { tagMap[name] = { name: name, count: 1, path: null }; }
+        });
+      }
+    });
+    var sortedTags = Object.keys(tagMap).sort(function(a,b){ return a.localeCompare(b, 'zh-CN'); }).map(function(k){ return tagMap[k]; });
+  %>
   <div class="tag-cloud">
-    <% page.tags.sort('name').forEach(function(tag) { %>
-      <a class="tag-cloud-item" href="<%- url_for(tag.path) %>" style="font-size: <%= 14 + Math.min(tag.posts.length, 10) %>px;">
-        <%= tag.name %>
-        <span class="tag-count">(<%= tag.posts.length %>)</span>
-      </a>
+    <% sortedTags.forEach(function(tag) { %>
+      <% if (tag.path) { %>
+        <a class="tag-cloud-item" href="<%- url_for(tag.path) %>" style="font-size: <%= 14 + Math.min(tag.count, 10) %>px;">
+          <%= tag.name %>
+          <span class="tag-count">(<%= tag.count %>)</span>
+        </a>
+      <% } else { %>
+        <span class="tag-cloud-item plain">
+          <%= tag.name %>
+          <span class="tag-count">(<%= tag.count %>)</span>
+        </span>
+      <% } %>
     <% }) %>
   </div>
 </section>

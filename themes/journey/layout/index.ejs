@@ -59,7 +59,7 @@
         <span class="region-name"><%= page.title %></span>
         <span class="region-location">
           <% if (page.tags && page.tags.length) { %>
-            <%= page.tags.map(function(t){return t.name}).slice(0, 2).join(' · ') %>
+            <%= page.tags.slice(0, 2).join(' · ') %>
           <% } %>
         </span>
         <span class="region-time"><%= date(page.updated || page.date, 'MM-dd') %></span>
