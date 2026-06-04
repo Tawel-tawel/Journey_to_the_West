@@ -4,16 +4,16 @@
 
 ## 当前足迹
 
-- [中国 / 广西 / 桂林](../source/travels/guilin/)
-- [中国 / 广西 / 柳州](../source/travels/liuzhou/)
-- [中国 / 海南 / 海口](../source/travels/haikou/)
-- [中国 / 四川 / 成都 / 锦里](../source/travels/jinli/)
-- [中国 / 四川 / 成都 / 宽窄巷子](../source/travels/kuanzhai-alley/)
-- [中国 / 四川 / 阿坝 / 九寨沟](../source/travels/jiuzhaigou/)
-- [中国 / 北京](../source/travels/beijing/)
-- [中国 / 吉林 / 长春](../source/travels/changchun/)
-- [中国 / 吉林 / 松原](../source/travels/songyuan/)
-- [中国 / 吉林 / 吉林市](../source/travels/jilin-city/)
+- [亚洲 / 中国 / 广西 / 桂林](../Asia/China/Guangxi/Guilin/)
+- [亚洲 / 中国 / 广西 / 柳州](../Asia/China/Guangxi/Liuzhou/)
+- [亚洲 / 中国 / 海南 / 海口](../Asia/China/Hainan/Haikou/)
+- [亚洲 / 中国 / 四川 / 成都 / 锦里](../Asia/China/Sichuan/Chengdu/Jinli/)
+- [亚洲 / 中国 / 四川 / 成都 / 宽窄巷子](../Asia/China/Sichuan/Chengdu/Kuanzhai_Alley/)
+- [亚洲 / 中国 / 四川 / 阿坝 / 九寨沟](../Asia/China/Sichuan/Aba/Jiuzhaigou/)
+- [亚洲 / 中国 / 北京](../Asia/China/Beijing/)
+- [亚洲 / 中国 / 吉林 / 长春](../Asia/China/Jilin/Changchun/)
+- [亚洲 / 中国 / 吉林 / 松原](../Asia/China/Jilin/Songyuan/)
+- [亚洲 / 中国 / 吉林 / 吉林市](../Asia/China/Jilin/Jilin_City/)
 
 ## 维护方式
 

@@ -456,7 +456,7 @@ h3 {
   padding: 20px 0;
 }
 
-.tag-cloud a {
+.tag-cloud-item {
   display: inline-block;
   padding: 4px 12px;
   border: 1px solid var(--line);
@@ -464,11 +464,19 @@ h3 {
   background: var(--paper);
   transition: all 0.2s;
 }
-
-.tag-cloud a:hover {
+.tag-cloud-item:hover {
   border-color: var(--accent);
   color: var(--accent-strong);
   box-shadow: var(--shadow);
+}
+.tag-cloud-item.plain {
+  color: var(--muted);
+  cursor: default;
+}
+.tag-cloud-item.plain:hover {
+  border-color: var(--line);
+  color: var(--muted);
+  box-shadow: none;
 }
 
 /* ── travel tree ── */
