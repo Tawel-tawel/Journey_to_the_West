@@ -4,6 +4,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+DEST_ROOT = ROOT / "destinations"
 README = ROOT / "README.md"
 START = "<!-- TOC:START -->"
 END = "<!-- TOC:END -->"
@@ -14,17 +15,7 @@ IGNORE_DIRS = {
     ".idea",
     ".vscode",
     "__pycache__",
-    "assets",
-    "docs",
     "photos",
-    "node_modules",
-    "public",
-    "scaffolds",
-    "scripts",
-    "source",
-    "templates",
-    "themes",
-    "tools",
 }
 
 ORDER = [
@@ -79,7 +70,10 @@ def replace_toc(readme_text: str, toc: str) -> str:
 
 
 def main() -> None:
-    toc = "\n".join(build_toc())
+    if not DEST_ROOT.exists():
+        print(f"Warning: {DEST_ROOT} not found. Skipping TOC update.")
+        return
+    toc = "\n".join(build_toc(DEST_ROOT))
     README.write_text(replace_toc(README.read_text(encoding="utf-8"), toc), encoding="utf-8")
 
 

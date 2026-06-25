@@ -2,19 +2,23 @@
   <header class="page-header">
     <p class="eyebrow">Archives</p>
     <h1>全部文章</h1>
-    <p class="page-desc">共 <%= page.posts.length %> 篇</p>
+    <% var allItems = []; %>
+    <% page.posts.forEach(function(p) { allItems.push({ title: p.title, date: p.date, path: p.path, tags: p.tags }); }); %>
+    <% site.pages.forEach(function(p) { if (p.hierarchy && p.hierarchy.length) { allItems.push({ title: p.title, date: p.date, path: p.path, tags: p.tags }); } }); %>
+    <% allItems.sort(function(a,b){ return new Date(b.date) - new Date(a.date); }); %>
+    <p class="page-desc">共 <%= allItems.length %> 篇</p>
   </header>
   <div class="archive-list">
-    <% page.posts.sort('-date').forEach(function(post) { %>
+    <% allItems.forEach(function(item) { %>
       <article class="archive-item">
-        <time><%= date(post.date, 'YYYY-MM-DD') %></time>
-        <a href="<%- url_for(post.path) %>">
-          <h3><%= post.title %></h3>
+        <time><%= date(item.date, 'YYYY-MM-DD') %></time>
+        <a href="<%- url_for(item.path) %>">
+          <h3><%= item.title %></h3>
         </a>
-        <% if (post.tags && post.tags.length) { %>
+        <% if (item.tags && item.tags.length) { %>
           <div class="archive-tags">
-            <% post.tags.forEach(function(tag) { %>
-              <span class="tag"><%= tag.name %></span>
+            <% (Array.isArray(item.tags) ? item.tags : []).forEach(function(t) { %>
+              <span class="tag"><%= typeof t === 'string' ? t : t.name %></span>
             <% }) %>
           </div>
         <% } %>

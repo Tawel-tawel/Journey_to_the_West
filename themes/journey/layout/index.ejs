@@ -1,12 +1,20 @@
 <section class="hero">
   <div class="hero-inner">
-    <p class="eyebrow">Travel Archive</p>
-    <h1>把走过的地方，整理成可以回看的路。</h1>
-    <p class="hero-copy">用脚步丈量世界，用 Git 管理记忆。按大洲 → 国家 → 省/州 → 城市 → 地点的层级整理游记、攻略、影像和旅行清单。</p>
-    <div class="hero-actions">
-      <a class="button primary" href="<%- url_for('/travels/') %>">查看足迹</a>
-      <a class="button" href="<%- url_for('/archives/') %>">全部文章</a>
-      <a class="button" href="<%- url_for('/planned/') %>">待补清单</a>
+    <div class="hero-media">
+      <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116810342993250&bvid=BV16a7Y63EG8&cid=39398015012&p=1&autoplay=0&high_quality=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" class="hero-video-embed"></iframe>
+    </div>
+    <div class="hero-text">
+      <p class="eyebrow">Travel Archive</p>
+      <h1>
+        <span class="h1-ornament">「</span>把走过的地方<br>整理成可以回看的路。
+      </h1>
+      <p class="hero-copy">用脚步丈量世界，用 Git 管理记忆。</p>
+      <p class="hero-copy">按大洲 → 国家 → 省/州 → 城市 → 地点的层级整理游记、攻略、影像和旅行清单。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="<%- url_for('/travels/') %>">查看足迹</a>
+        <a class="button" href="<%- url_for('/archives/') %>">全部文章</a>
+        <a class="button" href="<%- url_for('/planned/') %>">待补清单</a>
+      </div>
     </div>
   </div>
 </section>
@@ -50,7 +58,7 @@
   </div>
   <div class="region-list">
     <% var travelPages = site.pages.filter(function(p) {
-      return p.path.startsWith('travels/') && p.path !== 'travels/index.html';
+      return p.hierarchy && p.hierarchy.length;
     }).sort(function(a, b) {
       return (b.updated || b.date) - (a.updated || a.date);
     }).slice(0, 6); %>
@@ -62,7 +70,7 @@
             <%= page.tags.slice(0, 2).join(' · ') %>
           <% } %>
         </span>
-        <span class="region-time"><%= date(page.updated || page.date, 'MM-dd') %></span>
+        <span class="region-time"><%= date(page.updated || page.date, 'MM-DD') %></span>
       </a>
     <% }) %>
   </div>

@@ -7,25 +7,11 @@
 
   <%
     var travelPages = site.pages.filter(function(p) {
-      return p.source.startsWith('travels/') && p.source !== 'travels/index.md';
+      return p.source.startsWith('travels/') && p.source !== 'travels/index.md' && p.hierarchy;
     });
 
     function buildPath(page) {
-      var continent = page.continent || '亚洲';
-      var country = page.country || '中国';
-      var tags = page.tags || [];
-      var p, c, l;
-      if (tags.length >= 3) { p = tags[0]; c = tags[1]; l = page.title; }
-      else if (tags.length === 2) { p = tags[0]; c = tags[1]; l = page.title; }
-      else if (tags.length === 1) { p = tags[0]; c = page.title; l = page.title; }
-      else { p = page.title; c = page.title; l = page.title; }
-
-      var raw = [continent, country, p, c, l];
-      var out = [raw[0]];
-      for (var i = 1; i < raw.length; i++) {
-        if (raw[i] !== out[out.length - 1]) out.push(raw[i]);
-      }
-      return out;
+      return page.hierarchy || [page.continent || '亚洲', page.country || '中国', page.title];
     }
 
     var TIER_ICONS = ['🌏', '🇨🇳', '🏔', '🏙', '📍'];
@@ -86,7 +72,7 @@
           <a class="travel-tree-label leaf" href="<%- url_for(child.page.path) %>">
             <span class="travel-tree-icon"><%= icon(depth) %></span>
             <%= child.page.title %>
-            <span class="travel-tree-meta"><%= date(child.page.updated || child.page.date, 'MM-dd') %></span>
+            <span class="travel-tree-meta"><%= date(child.page.updated || child.page.date, 'MM-DD') %></span>
           </a>
         <% } else { %>
           <div class="travel-tree-label branch">
@@ -113,6 +99,8 @@
       </li>
     </ul>
   </div>
+
+
 
   <script>
     (function(){

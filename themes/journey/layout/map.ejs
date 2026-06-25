@@ -85,19 +85,13 @@
   <script>
     (function() {
       var locations = [
-        { name: '桂林', path: '<%- url_for("/travels/guilin/") %>', lat: 25.2736, lng: 110.2900, continent: '亚洲', country: '中国', province: '广西', desc: '山水甲天下' },
-        { name: '柳州', path: '<%- url_for("/travels/liuzhou/") %>', lat: 24.3263, lng: 109.4280, continent: '亚洲', country: '中国', province: '广西', desc: '螺蛳粉之乡' },
-        { name: '海口', path: '<%- url_for("/travels/haikou/") %>', lat: 20.0440, lng: 110.3580, continent: '亚洲', country: '中国', province: '海南', desc: '椰风海韵' },
-        { name: '锦里', path: '<%- url_for("/travels/jinli/") %>', lat: 30.6476, lng: 104.0478, continent: '亚洲', country: '中国', province: '四川', city: '成都', desc: '武侯祠旁古街' },
-        { name: '宽窄巷子', path: '<%- url_for("/travels/kuanzhai-alley/") %>', lat: 30.6716, lng: 104.0580, continent: '亚洲', country: '中国', province: '四川', city: '成都', desc: '老成都院落文化' },
-        { name: '九寨沟', path: '<%- url_for("/travels/jiuzhaigou/") %>', lat: 33.2611, lng: 104.2386, continent: '亚洲', country: '中国', province: '四川', city: '阿坝州', desc: '人间仙境' },
-        { name: '北京', path: '<%- url_for("/travels/beijing/") %>', lat: 39.9042, lng: 116.4074, continent: '亚洲', country: '中国', province: '北京', desc: '首都古都' },
-        { name: '长春', path: '<%- url_for("/travels/changchun/") %>', lat: 43.8966, lng: 125.3262, continent: '亚洲', country: '中国', province: '吉林', desc: '北国春城' },
-        { name: '松原', path: '<%- url_for("/travels/songyuan/") %>', lat: 45.1298, lng: 124.8260, continent: '亚洲', country: '中国', province: '吉林', desc: '查干湖冬捕' },
-        { name: '吉林市', path: '<%- url_for("/travels/jilin-city/") %>', lat: 43.8378, lng: 126.5486, continent: '亚洲', country: '中国', province: '吉林', desc: '雾凇之都' }
+        <% site.pages.forEach(function(p, i) { if (p.hierarchy && p.hierarchy.length && p.lat && p.lng) { var prv = p.hierarchy.length > 2 ? p.hierarchy[p.hierarchy.length-2] : ''; %>
+          { name: '<%= p.title %>', path: '<%- url_for(p.path) %>', lat: <%= p.lat %>, lng: <%= p.lng %>, country: '<%= p.country || "" %>', province: '<%= prv %>' },
+        <% } }) %>
       ];
 
-      var map = L.map('map', { center: [35, 110], zoom: 4, scrollWheelZoom: true, zoomControl: true });
+      var map = L.map('map', { center: [20, 100], zoom: 3, scrollWheelZoom: true, zoomControl: true });
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 18
@@ -105,19 +99,19 @@
 
       var markers = [];
       locations.forEach(function(loc) {
-        var m = L.marker([loc.lat, loc.lng]).addTo(map);
+        var m = L.marker([loc.lat, loc.lng], { opacity: 0.9 }).addTo(map);
         m.bindPopup('<strong>' + loc.name + '</strong><br>' + (loc.desc || '') + '<br><a href="' + loc.path + '">查看游记 →</a>');
         markers.push(m);
       });
 
+      var TIER_ICONS = ['🌏', '📍', '🗺', '📌', '📍'];
+
       function buildTree(locs) {
         var root = { name: '世界', children: [] };
         locs.forEach(function(loc) {
-          var c = fO(root, 'continent', loc.continent || '亚洲');
-          var co = fO(c, 'country', loc.country);
-          var p = fO(co, 'province', loc.province);
-          if (loc.city) { var ci = fO(p, 'city', loc.city); ci.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true }); }
-          else { p.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true }); }
+          var c = fO(root, 'country', loc.country || '中国');
+          var p = (loc.province && loc.province !== loc.country) ? fO(c, 'province', loc.province) : c;
+          p.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true });
         });
         return root;
       }
@@ -127,7 +121,8 @@
       }
       function countLeaves(n) { if (n.leaf) return 1; return (n.children||[]).reduce(function(s,c){return s+countLeaves(c);}, 0); }
 
-      function renderTree(node, container) {
+      function renderTree(node, container, depth) {
+        depth = depth || 0;
         var ul = document.createElement('ul'); ul.className = 'tree-ul';
         (node.children || []).forEach(function(child) {
           var li = document.createElement('li'); li.className = 'tree-li';
@@ -140,12 +135,14 @@
             icon.textContent = '📍';
             label.appendChild(icon);
             label.appendChild(document.createTextNode(' ' + child.name));
-            label.addEventListener('click', function() { map.setView([child.lat, child.lng], 12, { animate: true }); });
+            (function(l) {
+              label.addEventListener('click', function() { map.setView([l.lat, l.lng], 12, { animate: true }); });
+            })(child);
           } else {
             var childUl = document.createElement('ul');
             childUl.className = 'tree-ul';
             childUl.classList.add('collapsed');
-            renderTree(child, childUl);
+            renderTree(child, childUl, depth + 1);
 
             var toggle = document.createElement('span');
             toggle.className = 'tree-toggle';
@@ -161,7 +158,7 @@
 
             var icon = document.createElement('span');
             icon.className = 'tree-icon';
-            icon.textContent = '📁';
+            icon.textContent = TIER_ICONS[Math.min(depth, TIER_ICONS.length - 1)];
             label.appendChild(icon);
             label.appendChild(document.createTextNode(' ' + child.name));
 
@@ -183,7 +180,9 @@
       var rootUl = document.querySelector('#tree-root > .tree-ul');
       if (rootUl) rootUl.classList.remove('collapsed');
 
-      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.15));
+      if (markers.length > 0) {
+        map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+      }
       window.addEventListener('resize', function() { map.invalidateSize(); });
     })();
   </script>
