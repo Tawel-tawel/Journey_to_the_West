@@ -3,12 +3,27 @@
     <p class="eyebrow">Tag</p>
     <h1><%= page.tag %></h1>
   </header>
+  <%
+    var tagName = page.tag;
+    var tagItems = [];
+    page.posts.forEach(function(p) { tagItems.push({ title: p.title, date: p.date, path: p.path }); });
+    site.pages.forEach(function(p) {
+      if (p.tags && p.tags.length) {
+        (Array.isArray(p.tags) ? p.tags : []).forEach(function(t) {
+          if ((typeof t === 'string' ? t : t.name) === tagName) {
+            tagItems.push({ title: p.title, date: p.date, path: p.path });
+          }
+        });
+      }
+    });
+    tagItems.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+  %>
   <div class="post-list">
-    <% page.posts.sort('-date').forEach(function(post) { %>
+    <% tagItems.forEach(function(item) { %>
       <article class="post-card">
-        <a href="<%- url_for(post.path) %>">
-          <h3><%= post.title %></h3>
-          <time><%= date(post.date, 'YYYY-MM-DD') %></time>
+        <a href="<%- url_for(item.path) %>">
+          <h3><%= item.title %></h3>
+          <time><%= date(item.date, 'YYYY-MM-DD') %></time>
         </a>
       </article>
     <% }) %>

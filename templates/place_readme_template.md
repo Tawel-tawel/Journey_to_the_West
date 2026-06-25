@@ -1,5 +1,5 @@
 <!--
-创建新地点时，请确保在 Asia/ 下按 大洲/国家/省份/城市 创建目录。
+创建新地点时，请确保在 destinations/ 下按 大洲/国家/省份/城市 创建目录。
 如果要同步为 Hexo 博客页面，运行 tools/sync_travels_to_hexo.py。
 Hexo 页面需要以下 frontmatter 字段（脚本自动生成）：
   continent: 亚洲

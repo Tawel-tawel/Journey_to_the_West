@@ -1,5 +1,8 @@
 <article class="content-page">
   <header class="page-header">
+    <% if (page.hierarchy && page.hierarchy.length) { %>
+      <a class="back-link" href="<%- url_for('/travels/') %>">← 返回足迹列表</a>
+    <% } %>
     <p class="eyebrow"><%= page.categories && page.categories.length ? page.categories.map(function(c) { return c.name }).join(' / ') : 'Travel' %></p>
     <h1><%= page.title %></h1>
     <time><%= date(page.date, 'YYYY-MM-DD') %></time>

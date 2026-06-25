@@ -6,7 +6,7 @@
 ## 导航
 
 - [足迹地图](./docs/world_map.md)
-- [亚洲](./Asia/)
+- [亚洲](./destinations/Asia/)
 - [地点 README 模板](./templates/place_readme_template.md)
 - [Hexo 博客内容](./source/)
 - [脚本工具](./tools/)
@@ -15,7 +15,7 @@
 
 这个仓库现在同时是一个 Hexo 博客项目：
 
-- `Asia/`：原始旅行资料库，按大洲、国家、省市、地点保存 `README.md`、`tips.md` 和照片。
+- `destinations/`：原始旅行资料库，按大洲、国家、省市、地点保存 `README.md`、`tips.md` 和照片。
 - `source/`：Hexo 站点内容，用于生成网页。
 - `themes/journey/`：仓库自带的轻量主题，先保证能本地预览和部署，后续可以再换更漂亮的主题。
 - `scaffolds/`：Hexo 新建文章和页面时使用的模板。
@@ -61,47 +61,24 @@ npm run deploy
 这个仓库记录了本人去过的地方及配套攻略。之所以写在 GitHub 上，是因为某些平台（如小红书）会删评论…… 以下是目录结构：
 
 <!-- TOC:START -->
-- [Asia](./Asia/)
-  - [China](./Asia/China/)
-    - [Beijing](./Asia/China/Beijing/)
-    - [Guangxi](./Asia/China/Guangxi/)
-      - [Guilin](./Asia/China/Guangxi/Guilin/)
-      - [Liuzhou](./Asia/China/Guangxi/Liuzhou/)
-    - [Hainan](./Asia/China/Hainan/)
-      - [Haikou](./Asia/China/Hainan/Haikou/)
-    - [Jilin](./Asia/China/Jilin/)
-      - [Changchun](./Asia/China/Jilin/Changchun/)
-      - [Jilin City](./Asia/China/Jilin/Jilin_City/)
-      - [Songyuan](./Asia/China/Jilin/Songyuan/)
-    - [Sichuan](./Asia/China/Sichuan/)
-      - [Aba](./Asia/China/Sichuan/Aba/)
-        - [Jiuzhaigou](./Asia/China/Sichuan/Aba/Jiuzhaigou/)
-      - [Chengdu](./Asia/China/Sichuan/Chengdu/)
-        - [Jinli](./Asia/China/Sichuan/Chengdu/Jinli/)
-        - [Kuanzhai Alley](./Asia/China/Sichuan/Chengdu/Kuanzhai_Alley/)
-- [scaffolds](./scaffolds/)
-- [source](./source/)
-  - [ posts](./source/_posts/)
-  - [about](./source/about/)
-  - [guide](./source/guide/)
-  - [planned](./source/planned/)
-  - [travels](./source/travels/)
-    - [beijing](./source/travels/beijing/)
-    - [changchun](./source/travels/changchun/)
-    - [guilin](./source/travels/guilin/)
-    - [haikou](./source/travels/haikou/)
-    - [jilin-city](./source/travels/jilin-city/)
-    - [jinli](./source/travels/jinli/)
-    - [jiuzhaigou](./source/travels/jiuzhaigou/)
-    - [kuanzhai-alley](./source/travels/kuanzhai-alley/)
-    - [liuzhou](./source/travels/liuzhou/)
-    - [songyuan](./source/travels/songyuan/)
-- [themes](./themes/)
-  - [journey](./themes/journey/)
-    - [layout](./themes/journey/layout/)
-    - [source](./themes/journey/source/)
-      - [css](./themes/journey/source/css/)
-      - [js](./themes/journey/source/js/)
+- [Asia](./destinations/Asia/)
+  - [China](./destinations/Asia/China/)
+    - [Beijing](./destinations/Asia/China/Beijing/)
+    - [Guangxi](./destinations/Asia/China/Guangxi/)
+      - [Guilin](./destinations/Asia/China/Guangxi/Guilin/)
+      - [Liuzhou](./destinations/Asia/China/Guangxi/Liuzhou/)
+    - [Hainan](./destinations/Asia/China/Hainan/)
+      - [Haikou](./destinations/Asia/China/Hainan/Haikou/)
+    - [Jilin](./destinations/Asia/China/Jilin/)
+      - [Changchun](./destinations/Asia/China/Jilin/Changchun/)
+      - [Jilin City](./destinations/Asia/China/Jilin/Jilin_City/)
+      - [Songyuan](./destinations/Asia/China/Jilin/Songyuan/)
+    - [Sichuan](./destinations/Asia/China/Sichuan/)
+      - [Aba](./destinations/Asia/China/Sichuan/Aba/)
+        - [Jiuzhaigou](./destinations/Asia/China/Sichuan/Aba/Jiuzhaigou/)
+      - [Chengdu](./destinations/Asia/China/Sichuan/Chengdu/)
+        - [Jinli](./destinations/Asia/China/Sichuan/Chengdu/Jinli/)
+        - [Kuanzhai Alley](./destinations/Asia/China/Sichuan/Chengdu/Kuanzhai_Alley/)
 <!-- TOC:END -->
 
 ## 计划补充
