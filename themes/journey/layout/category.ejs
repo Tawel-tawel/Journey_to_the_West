@@ -4,11 +4,25 @@
     <h1><%= page.category %></h1>
   </header>
   <div class="post-list">
-    <% page.posts.sort('-date').forEach(function(post) { %>
+    <%
+      var catItems = [];
+      page.posts.forEach(function(p) { catItems.push({ title: p.title, date: p.date, path: p.path }); });
+      site.pages.forEach(function(p) {
+        if (p.categories && p.categories.length) {
+          var hits = false;
+          (Array.isArray(p.categories) ? p.categories : [p.categories]).forEach(function(c) {
+            if (typeof c === 'string' ? c === page.category : c.name === page.category) hits = true;
+          });
+          if (hits) catItems.push({ title: p.title, date: p.date, path: p.path });
+        }
+      });
+      catItems.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    %>
+    <% catItems.forEach(function(item) { %>
       <article class="post-card">
-        <a href="<%- url_for(post.path) %>">
-          <h3><%= post.title %></h3>
-          <time><%= date(post.date, 'YYYY-MM-DD') %></time>
+        <a href="<%- url_for(item.path) %>">
+          <h3><%= item.title %></h3>
+          <time><%= date(item.date, 'YYYY-MM-DD') %></time>
         </a>
       </article>
     <% }) %>

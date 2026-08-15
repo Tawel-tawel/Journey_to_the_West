@@ -85,17 +85,48 @@
   <script>
     (function() {
       var locations = [
-        <% site.pages.forEach(function(p, i) { if (p.hierarchy && p.hierarchy.length && p.lat && p.lng) { var prv = p.hierarchy.length > 2 ? p.hierarchy[p.hierarchy.length-2] : ''; %>
-          { name: '<%= p.title %>', path: '<%- url_for(p.path) %>', lat: <%= p.lat %>, lng: <%= p.lng %>, country: '<%= p.country || "" %>', province: '<%= prv %>' },
+        <% site.pages.forEach(function(p, i) { if (p.hierarchy && p.hierarchy.length && p.lat && p.lng) { %>
+          { name: <%- JSON.stringify(p.title) %>, path: '<%- url_for(p.path) %>', lat: <%= p.lat %>, lng: <%= p.lng %>, hierarchy: <%- JSON.stringify(p.hierarchy) %>, desc: <%- JSON.stringify(p.desc || '') %> },
         <% } }) %>
       ];
 
       var map = L.map('map', { center: [20, 100], zoom: 3, scrollWheelZoom: true, zoomControl: true });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18
-      }).addTo(map);
+      var tileSources = [
+        {
+          url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+          options: {
+            attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a target="_blank" rel="noopener" href="https://carto.com/">CARTO</a>',
+            subdomains: 'bc',
+            maxZoom: 19
+          }
+        },
+        {
+          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          options: {
+            attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 18
+          }
+        }
+      ];
+
+      var currentTiles = 0;
+      function activateTiles() {
+        if (currentTiles >= tileSources.length) return;
+        var src = tileSources[currentTiles];
+        var layer = L.tileLayer(src.url, src.options);
+        var errors = 0;
+        layer.on('tileerror', function() {
+          errors++;
+          if (errors >= 6) {
+            map.removeLayer(layer);
+            currentTiles++;
+            activateTiles();
+          }
+        });
+        layer.addTo(map);
+      }
+      activateTiles();
 
       var markers = [];
       locations.forEach(function(loc) {
@@ -104,20 +135,35 @@
         markers.push(m);
       });
 
-      var TIER_ICONS = ['🌏', '📍', '🗺', '📌', '📍'];
+      var TIER_ICONS = ['🌍', '🌏', '🏛', '🏔', '🏙', '📍'];
 
       function buildTree(locs) {
         var root = { name: '世界', children: [] };
         locs.forEach(function(loc) {
-          var c = fO(root, 'country', loc.country || '中国');
-          var p = (loc.province && loc.province !== loc.country) ? fO(c, 'province', loc.province) : c;
-          p.children.push({ name: loc.name, path: loc.path, lat: loc.lat, lng: loc.lng, leaf: true });
+          var node = root;
+          (loc.hierarchy || []).forEach(function(seg, idx) {
+            var isLast = idx === loc.hierarchy.length - 1;
+            var child = find(node, seg);
+            if (!child) {
+              child = { name: seg, children: [], leaf: false };
+              node.children.push(child);
+            }
+            if (isLast) {
+              child.leaf = true;
+              child.path = loc.path;
+              child.lat = loc.lat;
+              child.lng = loc.lng;
+            }
+            node = child;
+          });
         });
         return root;
       }
-      function fO(p, t, n) {
-        for (var i = 0; i < (p.children || []).length; i++) { if (p.children[i].name === n) return p.children[i]; }
-        var node = { name: n, children: [] }; p.children.push(node); return node;
+      function find(node, name) {
+        for (var i = 0; i < (node.children || []).length; i++) {
+          if (node.children[i].name === name) return node.children[i];
+        }
+        return null;
       }
       function countLeaves(n) { if (n.leaf) return 1; return (n.children||[]).reduce(function(s,c){return s+countLeaves(c);}, 0); }
 
@@ -165,10 +211,11 @@
             var cnt = document.createElement('span'); cnt.className = 'tree-count';
             cnt.textContent = countLeaves(child) + '处';
             label.appendChild(cnt);
-
-            li.appendChild(childUl);
           }
           li.appendChild(label);
+          if (childUl) {
+            li.appendChild(childUl);
+          }
           ul.appendChild(li);
         });
         if (container) container.appendChild(ul);

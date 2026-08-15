@@ -11,7 +11,7 @@
     });
 
     function buildPath(page) {
-      return page.hierarchy || [page.continent || '亚洲', page.country || '中国', page.title];
+      return page.hierarchy;
     }
 
     var TIER_ICONS = ['🌏', '🇨🇳', '🏔', '🏙', '📍'];
