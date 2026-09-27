@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>足迹地图 | Journey to the West</title>
+  <meta name="description" content="旅行足迹、游记、攻略、照片和城市记忆。">
+  <meta name="keywords" content="travel, blog, Hexo, Journey to the West">
+  
+<link rel="stylesheet" href="/Journey_to_the_West/css/style.css">
+
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+  
+  
+<script src="/Journey_to_the_West/js/index.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+  
+
+  <main class="site-main site-main--full">
+    
+<style>
+  .site-main--full { width: 100%; max-width: none; margin: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  #map-header {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    gap: 16px;
+    z-index: 1000;
+    position: relative;
+  }
+  #map-header .brand { font-weight: 800; font-size: 16px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+  #map-header .nav-links { display: flex; gap: 14px; font-size: 13px; }
+  #map-header .nav-links a { color: var(--muted); text-decoration: none; }
+  #map-header .nav-links a:hover { color: var(--accent); }
+  #map-header .map-title { margin-left: auto; font-size: 13px; color: var(--muted); }
+  #map-wrapper { display: flex; height: calc(100vh - 52px); width: 100%; }
+  #sidebar { width: 260px; min-width: 260px; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 12px; }
+  #sidebar h2 { font-size: 15px; margin-bottom: 10px; color: var(--ink); }
+  .tree-ul { list-style: none; padding-left: 0; }
+  .tree-ul .tree-ul { padding-left: 16px; }
+  .tree-ul.collapsed { display: none; }
+  .tree-li { margin: 1px 0; }
+  .tree-label {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 6px; border-radius: 4px;
+    font-size: 13px; cursor: default; color: var(--muted);
+    user-select: none;
+  }
+  .tree-label.visited { color: var(--ink); cursor: pointer; }
+  .tree-label.visited:hover { background: rgba(39, 107, 115, 0.10); color: var(--accent-strong); }
+  .tree-icon { font-size: 14px; flex-shrink: 0; }
+  .tree-toggle {
+    flex-shrink: 0; width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; cursor: pointer; border-radius: 3px;
+    color: var(--muted); transition: transform 0.15s;
+  }
+  .tree-toggle:hover { background: var(--line); }
+  .tree-toggle.expanded { transform: rotate(90deg); }
+  .tree-count { margin-left: auto; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  #map { flex: 1; height: 100%; }
+  .leaflet-popup-content { font-size: 13px; line-height: 1.6; }
+  .leaflet-popup-content a { color: var(--accent-strong); font-weight: 700; }
+  @media (max-width: 640px) { #sidebar { display: none; } #map-header .nav-links { display: none; } }
+</style>
+
+<div id="map-header">
+  <a class="brand" href="/Journey_to_the_West/">Journey to the West</a>
+  <div class="nav-links">
+    
+    
+      <a href="/Journey_to_the_West/">首页</a>
+    
+      <a href="/Journey_to_the_West/travels/">足迹</a>
+    
+      <a href="/Journey_to_the_West/map/">地图</a>
+    
+      <a href="/Journey_to_the_West/archives/">归档</a>
+    
+      <a href="/Journey_to_the_West/tags/">标签</a>
+    
+      <a href="/Journey_to_the_West/planned/">待补</a>
+    
+      <a href="/Journey_to_the_West/about/">关于</a>
+    
+  </div>
+  <div class="map-title">🌍 足迹地图</div>
+</div>
+
+<div id="map-wrapper">
+  <div id="sidebar">
+    <h2>📍 足迹目录</h2>
+    <ul class="tree-ul" id="tree-root"></ul>
+  </div>
+  <div id="map"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script>
+  (function() {
+    var locations = [
+      
+        { name: "北京", path: '/Journey_to_the_West/travels/beijing/index.html', lat: 39.9042, lng: 116.4074, hierarchy: ["亚洲","中国","北京"], desc: "这里用于整理北京的旅行照片、游览流程和城市印象" },
+      
+        { name: "长春", path: '/Journey_to_the_West/travels/changchun/index.html', lat: 43.8966, lng: 125.3262, hierarchy: ["亚洲","中国","吉林","长春"], desc: "这里用于整理长春的旅行照片、游览流程和城市印象" },
+      
+        { name: "桂林", path: '/Journey_to_the_West/travels/guilin/index.html', lat: 25.2736, lng: 110.29, hierarchy: ["亚洲","中国","广西","桂林"], desc: "这里用于整理桂林的旅行照片、游览流程和城市印象" },
+      
+        { name: "海口", path: '/Journey_to_the_West/travels/haikou/index.html', lat: 20.044, lng: 110.358, hierarchy: ["亚洲","中国","海南","海口"], desc: "这里用于整理海口的旅行照片、游览流程和城市印象" },
+      
+        { name: "吉林市", path: '/Journey_to_the_West/travels/jilin-city/index.html', lat: 43.8378, lng: 126.5486, hierarchy: ["亚洲","中国","吉林","吉林市"], desc: "这里用于整理吉林市的旅行照片、游览流程和城市印象" },
+      
+        { name: "九寨沟", path: '/Journey_to_the_West/travels/jiuzhaigou/index.html', lat: 33.2611, lng: 104.2386, hierarchy: ["亚洲","中国","四川","阿坝州","九寨沟"], desc: "这里用于整理九寨沟的旅行照片、游览流程和自然风光记录" },
+      
+        { name: "锦里", path: '/Journey_to_the_West/travels/jinli/index.html', lat: 30.6476, lng: 104.0478, hierarchy: ["亚洲","中国","四川","成都","锦里"], desc: "锦里靠近武侯祠，是成都夜游和小吃体验的经典地点之一。街区商业化程度较高，但灯光、街巷和川西民俗元素集中，适合和武侯祠安排在同一天。" },
+      
+        { name: "柳州", path: '/Journey_to_the_West/travels/liuzhou/index.html', lat: 24.3263, lng: 109.428, hierarchy: ["亚洲","中国","广西","柳州"], desc: "这里用于整理柳州的旅行照片、游览流程和城市印象" },
+      
+        { name: "宽窄巷子", path: '/Journey_to_the_West/travels/kuanzhai-alley/index.html', lat: 30.6716, lng: 104.058, hierarchy: ["亚洲","中国","四川","成都","宽窄巷子"], desc: "宽窄巷子由宽巷子、窄巷子、井巷子组成，是成都老城肌理和商业街区结合得比较集中的地方。适合初到成都时安排半天，用来感受茶馆、院落、小吃和慢节奏街巷。" },
+      
+        { name: "松原", path: '/Journey_to_the_West/travels/songyuan/index.html', lat: 45.1298, lng: 124.826, hierarchy: ["亚洲","中国","吉林","松原"], desc: "这里用于整理松原的旅行照片、游览流程和城市印象" },
+      
+    ];
+
+    var map = L.map('map', { center: [20, 100], zoom: 3, scrollWheelZoom: true, zoomControl: true });
+
+    var tileSources = [
+      {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+          attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 18
+        }
+      }
+    ];
+
+    var currentTiles = 0;
+    function activateTiles() {
+      if (currentTiles >= tileSources.length) return;
+      var src = tileSources[currentTiles];
+      var layer = L.tileLayer(src.url, src.options);
+      var errors = 0;
+      layer.on('tileerror', function() {
+        errors++;
+        if (errors >= 6) {
+          map.removeLayer(layer);
+          currentTiles++;
+          activateTiles();
+        }
+      });
+      layer.addTo(map);
+    }
+    activateTiles();
+
+    var markers = [];
+    locations.forEach(function(loc) {
+      var m = L.marker([loc.lat, loc.lng], { opacity: 0.9 }).addTo(map);
+      m.bindPopup('<strong>' + loc.name + '</strong><br>' + (loc.desc || '') + '<br><a href="' + loc.path + '">查看游记 →</a>');
+      markers.push(m);
+    });
+
+    var TIER_ICONS = ['🌍', '🌏', '🏛', '🏔', '🏙', '📍'];
+
+    function buildTree(locs) {
+      var root = { name: '世界', children: [] };
+      locs.forEach(function(loc) {
+        var node = root;
+        (loc.hierarchy || []).forEach(function(seg, idx) {
+          var isLast = idx === loc.hierarchy.length - 1;
+          var child = find(node, seg);
+          if (!child) {
+            child = { name: seg, children: [], leaf: false };
+            node.children.push(child);
+          }
+          if (isLast) {
+            child.leaf = true;
+            child.path = loc.path;
+            child.lat = loc.lat;
+            child.lng = loc.lng;
+          }
+          node = child;
+        });
+      });
+      return root;
+    }
+    function find(node, name) {
+      for (var i = 0; i < (node.children || []).length; i++) {
+        if (node.children[i].name === name) return node.children[i];
+      }
+      return null;
+    }
+    function countLeaves(n) {
+      var s = n.leaf ? 1 : 0;
+      (n.children || []).forEach(function(c){ s += countLeaves(c); });
+      return s;
+    }
+
+    function renderTree(node, container, depth) {
+      depth = depth || 0;
+      var ul = document.createElement('ul'); ul.className = 'tree-ul';
+      (node.children || []).forEach(function(child) {
+        var li = document.createElement('li'); li.className = 'tree-li';
+        var label = document.createElement('div'); label.className = 'tree-label';
+        var childUl = null;
+
+        if (child.children && child.children.length) {
+          childUl = document.createElement('ul');
+          childUl.className = 'tree-ul collapsed';
+          renderTree(child, childUl, depth + 1);
+
+          var toggle = document.createElement('span');
+          toggle.className = 'tree-toggle';
+          toggle.textContent = '▶';
+          (function(tog, cul) {
+            toggle.addEventListener('click', function(e) {
+              e.stopPropagation();
+              cul.classList.toggle('collapsed');
+              tog.classList.toggle('expanded');
+            });
+          })(toggle, childUl);
+          label.appendChild(toggle);
+        }
+
+        var icon = document.createElement('span');
+        icon.className = 'tree-icon';
+        icon.textContent = child.leaf ? '📍' : TIER_ICONS[Math.min(depth, TIER_ICONS.length - 1)];
+        label.appendChild(icon);
+        label.appendChild(document.createTextNode(' ' + child.name));
+
+        if (child.leaf) {
+          label.classList.add('visited');
+          (function(l) {
+            label.addEventListener('click', function() { map.setView([l.lat, l.lng], 12, { animate: true }); });
+          })(child);
+        }
+
+        if (child.children && child.children.length) {
+          var cnt = document.createElement('span'); cnt.className = 'tree-count';
+          cnt.textContent = countLeaves(child) + '处';
+          label.appendChild(cnt);
+        }
+
+        li.appendChild(label);
+        if (childUl) li.appendChild(childUl);
+        ul.appendChild(li);
+      });
+      if (container) container.appendChild(ul);
+    }
+
+    var tree = buildTree(locations);
+    renderTree(tree, document.getElementById('tree-root'));
+
+    var rootUl = document.querySelector('#tree-root > .tree-ul');
+    if (rootUl) rootUl.classList.remove('collapsed');
+
+    if (markers.length > 0) {
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+    }
+    window.addEventListener('resize', function() { map.invalidateSize(); });
+  })();
+</script>
+
+  </main>
+
+  
+</body>
+</html>
