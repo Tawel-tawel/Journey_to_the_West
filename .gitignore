@@ -221,10 +221,9 @@ __marimo__/
 .DS_Store
 
 # Travel media source files
+# 注意：heic/mov/mp4 等旅行媒体不再忽略，可按需提交；
+# 大文件留意 GitHub 单文件 100MB 上限，视频建议走 B 站嵌入。
 *.psd
-*.heic
-*.mov
-*.mp4
 *.tmp
 *.bak
 .opencode

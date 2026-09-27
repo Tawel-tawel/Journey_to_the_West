@@ -1,18 +1,18 @@
 ---
-title: 桂林
+title: "桂林"
 date: 2026-06-25
 layout: post
-continent: 亚洲
-country: 中国
+continent: "亚洲"
+country: "中国"
 categories:
   - travel
 tags:
-  - 中国
+  - "中国"
 hierarchy:
-  - 亚洲
-  - 中国
-  - 广西
-  - 桂林
+  - "亚洲"
+  - "中国"
+  - "广西"
+  - "桂林"
 desc: "这里用于整理桂林的旅行照片、游览流程和城市印象"
 lat: 25.2736
 lng: 110.29
@@ -31,4 +31,4 @@ lng: 110.29
 
 ## Guide
 
-- [攻略小贴士](./tips)
+- [攻略小贴士](./tips.html)

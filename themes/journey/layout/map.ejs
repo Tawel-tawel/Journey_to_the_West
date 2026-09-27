@@ -1,237 +1,220 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= page.title %> | <%= config.title %></title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      --bg: #f7f3ec; --paper: #fffdf8; --ink: #202124;
-      --muted: #6b6258; --line: #ded4c7; --accent: #276b73;
-      --accent-strong: #1e4f55;
-    }
-    #map-header {
-      display: flex;
-      align-items: center;
-      height: 52px;
-      padding: 0 20px;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-      gap: 16px;
-      z-index: 1000;
-      position: relative;
-    }
-    #map-header .brand { font-weight: 800; font-size: 16px; color: var(--ink); text-decoration: none; white-space: nowrap; }
-    #map-header .nav-links { display: flex; gap: 14px; font-size: 13px; }
-    #map-header .nav-links a { color: var(--muted); text-decoration: none; }
-    #map-header .nav-links a:hover { color: var(--accent); }
-    #map-header .map-title { margin-left: auto; font-size: 13px; color: var(--muted); }
-    #map-wrapper { display: flex; height: calc(100vh - 52px); width: 100%; }
-    #sidebar { width: 260px; min-width: 260px; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 12px; }
-    #sidebar h2 { font-size: 15px; margin-bottom: 10px; color: var(--ink); }
-    .tree-ul { list-style: none; padding-left: 0; }
-    .tree-ul .tree-ul { padding-left: 16px; }
-    .tree-ul.collapsed { display: none; }
-    .tree-li { margin: 1px 0; }
-    .tree-label {
-      display: flex; align-items: center; gap: 4px;
-      padding: 3px 6px; border-radius: 4px;
-      font-size: 13px; cursor: default; color: var(--muted);
-      user-select: none;
-    }
-    .tree-label.visited { color: var(--ink); cursor: pointer; }
-    .tree-label.visited:hover { background: rgba(39, 107, 115, 0.10); color: var(--accent-strong); }
-    .tree-icon { font-size: 14px; flex-shrink: 0; }
-    .tree-toggle {
-      flex-shrink: 0; width: 16px; height: 16px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 10px; cursor: pointer; border-radius: 3px;
-      color: var(--muted); transition: transform 0.15s;
-    }
-    .tree-toggle:hover { background: var(--line); }
-    .tree-toggle.expanded { transform: rotate(90deg); }
-    .tree-count { margin-left: auto; font-size: 11px; color: var(--muted); flex-shrink: 0; }
-    #map { flex: 1; height: 100%; }
-    .leaflet-popup-content { font-size: 13px; line-height: 1.6; }
-    .leaflet-popup-content a { color: var(--accent-strong); font-weight: 700; }
-    @media (max-width: 640px) { #sidebar { display: none; } #map-header .nav-links { display: none; } }
-  </style>
-</head>
-<body>
-  <div id="map-header">
-    <a class="brand" href="<%- url_for('/') %>">Journey to the West</a>
-    <div class="nav-links">
-      <% const menu = theme.menu || {}; %>
-      <% Object.keys(menu).forEach(function(name) { %>
-        <a href="<%- url_for(menu[name]) %>"><%= name %></a>
-      <% }) %>
-    </div>
-    <div class="map-title">🌍 足迹地图</div>
+<%#
+  Map page fragment. Rendered inside layout.ejs (which skips the site
+  header/footer for `layout: map` pages and adds `.site-main--full`).
+  Leaflet CSS is loaded from layout.ejs <head>; the JS is loaded below.
+%>
+<style>
+  .site-main--full { width: 100%; max-width: none; margin: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  #map-header {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    gap: 16px;
+    z-index: 1000;
+    position: relative;
+  }
+  #map-header .brand { font-weight: 800; font-size: 16px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+  #map-header .nav-links { display: flex; gap: 14px; font-size: 13px; }
+  #map-header .nav-links a { color: var(--muted); text-decoration: none; }
+  #map-header .nav-links a:hover { color: var(--accent); }
+  #map-header .map-title { margin-left: auto; font-size: 13px; color: var(--muted); }
+  #map-wrapper { display: flex; height: calc(100vh - 52px); width: 100%; }
+  #sidebar { width: 260px; min-width: 260px; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 12px; }
+  #sidebar h2 { font-size: 15px; margin-bottom: 10px; color: var(--ink); }
+  .tree-ul { list-style: none; padding-left: 0; }
+  .tree-ul .tree-ul { padding-left: 16px; }
+  .tree-ul.collapsed { display: none; }
+  .tree-li { margin: 1px 0; }
+  .tree-label {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 6px; border-radius: 4px;
+    font-size: 13px; cursor: default; color: var(--muted);
+    user-select: none;
+  }
+  .tree-label.visited { color: var(--ink); cursor: pointer; }
+  .tree-label.visited:hover { background: rgba(39, 107, 115, 0.10); color: var(--accent-strong); }
+  .tree-icon { font-size: 14px; flex-shrink: 0; }
+  .tree-toggle {
+    flex-shrink: 0; width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; cursor: pointer; border-radius: 3px;
+    color: var(--muted); transition: transform 0.15s;
+  }
+  .tree-toggle:hover { background: var(--line); }
+  .tree-toggle.expanded { transform: rotate(90deg); }
+  .tree-count { margin-left: auto; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  #map { flex: 1; height: 100%; }
+  .leaflet-popup-content { font-size: 13px; line-height: 1.6; }
+  .leaflet-popup-content a { color: var(--accent-strong); font-weight: 700; }
+  @media (max-width: 640px) { #sidebar { display: none; } #map-header .nav-links { display: none; } }
+</style>
+
+<div id="map-header">
+  <a class="brand" href="<%- url_for('/') %>">Journey to the West</a>
+  <div class="nav-links">
+    <% const menu = theme.menu || {}; %>
+    <% Object.keys(menu).forEach(function(name) { %>
+      <a href="<%- url_for(menu[name]) %>"><%= name %></a>
+    <% }) %>
   </div>
+  <div class="map-title">🌍 足迹地图</div>
+</div>
 
-  <div id="map-wrapper">
-    <div id="sidebar">
-      <h2>📍 足迹目录</h2>
-      <ul class="tree-ul" id="tree-root"></ul>
-    </div>
-    <div id="map"></div>
+<div id="map-wrapper">
+  <div id="sidebar">
+    <h2>📍 足迹目录</h2>
+    <ul class="tree-ul" id="tree-root"></ul>
   </div>
+  <div id="map"></div>
+</div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    (function() {
-      var locations = [
-        <% site.pages.forEach(function(p, i) { if (p.hierarchy && p.hierarchy.length && p.lat && p.lng) { %>
-          { name: <%- JSON.stringify(p.title) %>, path: '<%- url_for(p.path) %>', lat: <%= p.lat %>, lng: <%= p.lng %>, hierarchy: <%- JSON.stringify(p.hierarchy) %>, desc: <%- JSON.stringify(p.desc || '') %> },
-        <% } }) %>
-      ];
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script>
+  (function() {
+    var locations = [
+      <% site.pages.forEach(function(p, i) { if (p.hierarchy && p.hierarchy.length && p.lat && p.lng) { %>
+        { name: <%- JSON.stringify(p.title) %>, path: '<%- url_for(p.path) %>', lat: <%= p.lat %>, lng: <%= p.lng %>, hierarchy: <%- JSON.stringify(p.hierarchy) %>, desc: <%- JSON.stringify(p.desc || '') %> },
+      <% } }) %>
+    ];
 
-      var map = L.map('map', { center: [20, 100], zoom: 3, scrollWheelZoom: true, zoomControl: true });
+    var map = L.map('map', { center: [20, 100], zoom: 3, scrollWheelZoom: true, zoomControl: true });
 
-      var tileSources = [
-        {
-          url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-          options: {
-            attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a target="_blank" rel="noopener" href="https://carto.com/">CARTO</a>',
-            subdomains: 'bc',
-            maxZoom: 19
-          }
-        },
-        {
-          url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          options: {
-            attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 18
-          }
+    var tileSources = [
+      {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+          attribution: '&copy; <a target="_blank" rel="noopener" href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 18
         }
-      ];
-
-      var currentTiles = 0;
-      function activateTiles() {
-        if (currentTiles >= tileSources.length) return;
-        var src = tileSources[currentTiles];
-        var layer = L.tileLayer(src.url, src.options);
-        var errors = 0;
-        layer.on('tileerror', function() {
-          errors++;
-          if (errors >= 6) {
-            map.removeLayer(layer);
-            currentTiles++;
-            activateTiles();
-          }
-        });
-        layer.addTo(map);
       }
-      activateTiles();
+    ];
 
-      var markers = [];
-      locations.forEach(function(loc) {
-        var m = L.marker([loc.lat, loc.lng], { opacity: 0.9 }).addTo(map);
-        m.bindPopup('<strong>' + loc.name + '</strong><br>' + (loc.desc || '') + '<br><a href="' + loc.path + '">查看游记 →</a>');
-        markers.push(m);
+    var currentTiles = 0;
+    function activateTiles() {
+      if (currentTiles >= tileSources.length) return;
+      var src = tileSources[currentTiles];
+      var layer = L.tileLayer(src.url, src.options);
+      var errors = 0;
+      layer.on('tileerror', function() {
+        errors++;
+        if (errors >= 6) {
+          map.removeLayer(layer);
+          currentTiles++;
+          activateTiles();
+        }
       });
+      layer.addTo(map);
+    }
+    activateTiles();
 
-      var TIER_ICONS = ['🌍', '🌏', '🏛', '🏔', '🏙', '📍'];
+    var markers = [];
+    locations.forEach(function(loc) {
+      var m = L.marker([loc.lat, loc.lng], { opacity: 0.9 }).addTo(map);
+      m.bindPopup('<strong>' + loc.name + '</strong><br>' + (loc.desc || '') + '<br><a href="' + loc.path + '">查看游记 →</a>');
+      markers.push(m);
+    });
 
-      function buildTree(locs) {
-        var root = { name: '世界', children: [] };
-        locs.forEach(function(loc) {
-          var node = root;
-          (loc.hierarchy || []).forEach(function(seg, idx) {
-            var isLast = idx === loc.hierarchy.length - 1;
-            var child = find(node, seg);
-            if (!child) {
-              child = { name: seg, children: [], leaf: false };
-              node.children.push(child);
-            }
-            if (isLast) {
-              child.leaf = true;
-              child.path = loc.path;
-              child.lat = loc.lat;
-              child.lng = loc.lng;
-            }
-            node = child;
-          });
+    var TIER_ICONS = ['🌍', '🌏', '🏛', '🏔', '🏙', '📍'];
+
+    function buildTree(locs) {
+      var root = { name: '世界', children: [] };
+      locs.forEach(function(loc) {
+        var node = root;
+        (loc.hierarchy || []).forEach(function(seg, idx) {
+          var isLast = idx === loc.hierarchy.length - 1;
+          var child = find(node, seg);
+          if (!child) {
+            child = { name: seg, children: [], leaf: false };
+            node.children.push(child);
+          }
+          if (isLast) {
+            child.leaf = true;
+            child.path = loc.path;
+            child.lat = loc.lat;
+            child.lng = loc.lng;
+          }
+          node = child;
         });
-        return root;
+      });
+      return root;
+    }
+    function find(node, name) {
+      for (var i = 0; i < (node.children || []).length; i++) {
+        if (node.children[i].name === name) return node.children[i];
       }
-      function find(node, name) {
-        for (var i = 0; i < (node.children || []).length; i++) {
-          if (node.children[i].name === name) return node.children[i];
+      return null;
+    }
+    function countLeaves(n) {
+      var s = n.leaf ? 1 : 0;
+      (n.children || []).forEach(function(c){ s += countLeaves(c); });
+      return s;
+    }
+
+    function renderTree(node, container, depth) {
+      depth = depth || 0;
+      var ul = document.createElement('ul'); ul.className = 'tree-ul';
+      (node.children || []).forEach(function(child) {
+        var li = document.createElement('li'); li.className = 'tree-li';
+        var label = document.createElement('div'); label.className = 'tree-label';
+        var childUl = null;
+
+        if (child.children && child.children.length) {
+          childUl = document.createElement('ul');
+          childUl.className = 'tree-ul collapsed';
+          renderTree(child, childUl, depth + 1);
+
+          var toggle = document.createElement('span');
+          toggle.className = 'tree-toggle';
+          toggle.textContent = '▶';
+          (function(tog, cul) {
+            toggle.addEventListener('click', function(e) {
+              e.stopPropagation();
+              cul.classList.toggle('collapsed');
+              tog.classList.toggle('expanded');
+            });
+          })(toggle, childUl);
+          label.appendChild(toggle);
         }
-        return null;
-      }
-      function countLeaves(n) { if (n.leaf) return 1; return (n.children||[]).reduce(function(s,c){return s+countLeaves(c);}, 0); }
 
-      function renderTree(node, container, depth) {
-        depth = depth || 0;
-        var ul = document.createElement('ul'); ul.className = 'tree-ul';
-        (node.children || []).forEach(function(child) {
-          var li = document.createElement('li'); li.className = 'tree-li';
-          var label = document.createElement('div'); label.className = 'tree-label';
+        var icon = document.createElement('span');
+        icon.className = 'tree-icon';
+        icon.textContent = child.leaf ? '📍' : TIER_ICONS[Math.min(depth, TIER_ICONS.length - 1)];
+        label.appendChild(icon);
+        label.appendChild(document.createTextNode(' ' + child.name));
 
-          if (child.leaf) {
-            label.classList.add('visited');
-            var icon = document.createElement('span');
-            icon.className = 'tree-icon';
-            icon.textContent = '📍';
-            label.appendChild(icon);
-            label.appendChild(document.createTextNode(' ' + child.name));
-            (function(l) {
-              label.addEventListener('click', function() { map.setView([l.lat, l.lng], 12, { animate: true }); });
-            })(child);
-          } else {
-            var childUl = document.createElement('ul');
-            childUl.className = 'tree-ul';
-            childUl.classList.add('collapsed');
-            renderTree(child, childUl, depth + 1);
+        if (child.leaf) {
+          label.classList.add('visited');
+          (function(l) {
+            label.addEventListener('click', function() { map.setView([l.lat, l.lng], 12, { animate: true }); });
+          })(child);
+        }
 
-            var toggle = document.createElement('span');
-            toggle.className = 'tree-toggle';
-            toggle.textContent = '▶';
-            (function(tog, cul) {
-              toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                cul.classList.toggle('collapsed');
-                tog.classList.toggle('expanded');
-              });
-            })(toggle, childUl);
-            label.appendChild(toggle);
+        if (child.children && child.children.length) {
+          var cnt = document.createElement('span'); cnt.className = 'tree-count';
+          cnt.textContent = countLeaves(child) + '处';
+          label.appendChild(cnt);
+        }
 
-            var icon = document.createElement('span');
-            icon.className = 'tree-icon';
-            icon.textContent = TIER_ICONS[Math.min(depth, TIER_ICONS.length - 1)];
-            label.appendChild(icon);
-            label.appendChild(document.createTextNode(' ' + child.name));
+        li.appendChild(label);
+        if (childUl) li.appendChild(childUl);
+        ul.appendChild(li);
+      });
+      if (container) container.appendChild(ul);
+    }
 
-            var cnt = document.createElement('span'); cnt.className = 'tree-count';
-            cnt.textContent = countLeaves(child) + '处';
-            label.appendChild(cnt);
-          }
-          li.appendChild(label);
-          if (childUl) {
-            li.appendChild(childUl);
-          }
-          ul.appendChild(li);
-        });
-        if (container) container.appendChild(ul);
-      }
+    var tree = buildTree(locations);
+    renderTree(tree, document.getElementById('tree-root'));
 
-      var tree = buildTree(locations);
-      renderTree(tree, document.getElementById('tree-root'));
+    var rootUl = document.querySelector('#tree-root > .tree-ul');
+    if (rootUl) rootUl.classList.remove('collapsed');
 
-      var rootUl = document.querySelector('#tree-root > .tree-ul');
-      if (rootUl) rootUl.classList.remove('collapsed');
-
-      if (markers.length > 0) {
-        map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
-      }
-      window.addEventListener('resize', function() { map.invalidateSize(); });
-    })();
-  </script>
-</body>
-</html>
+    if (markers.length > 0) {
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+    }
+    window.addEventListener('resize', function() { map.invalidateSize(); });
+  })();
+</script>

@@ -1,5 +1,5 @@
 ---
-title: 长春 · 攻略
+title: "长春 · 攻略"
 layout: page
 ---
 

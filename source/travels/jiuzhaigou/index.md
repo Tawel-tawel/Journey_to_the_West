@@ -1,19 +1,19 @@
 ---
-title: 九寨沟
+title: "九寨沟"
 date: 2026-06-25
 layout: post
-continent: 亚洲
-country: 中国
+continent: "亚洲"
+country: "中国"
 categories:
   - travel
 tags:
-  - 中国
+  - "中国"
 hierarchy:
-  - 亚洲
-  - 中国
-  - 四川
-  - 阿坝州
-  - 九寨沟
+  - "亚洲"
+  - "中国"
+  - "四川"
+  - "阿坝州"
+  - "九寨沟"
 desc: "这里用于整理九寨沟的旅行照片、游览流程和自然风光记录"
 lat: 33.2611
 lng: 104.2386
@@ -32,4 +32,4 @@ lng: 104.2386
 
 ## Guide
 
-- [攻略小贴士](./tips)
+- [攻略小贴士](./tips.html)

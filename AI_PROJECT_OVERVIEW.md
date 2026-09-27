@@ -22,7 +22,6 @@
 ├── source/
 │   ├── _posts/                 # Hexo 博客文章（非游记内容）
 │   ├── travels/                # 自动生成的游记页面（由 sync_travels_to_hexo.py 写入）
-│   ├── videos/                 # 首页视频
 │   ├── about/                  # 关于页面
 │   ├── planned/                # 待补清单页面
 │   └── map/index.md            # 地图页面（layout: map）
@@ -57,6 +56,16 @@
 
 自动扫描 `destinations/` 目录，将每篇 README.md 同步为 `source/travels/{slug}/index.md`（添加 Hexo front-matter）。不再需要手动维护地点列表。
 
+附加行为：
+
+- 任何有自身内容（`tips.md` 或非空 `photos/`）的目录都会生成页面，即使下面还有子地点（如阿坝州）；仅 README 的目录只作层级节点。
+- `tips.md` 同步为子页面，正文 `./tips.md` 链接自动替换为 `./tips.html`（GitHub Pages 不解析无扩展名 URL）。
+- `photos/` 自动拷贝到 `source/travels/{slug}/photos/`（忽略 `.gitkeep`、`.DS_Store`），源目录删除照片后同步会清理博客侧旧照片。
+- 内容未变化时跳过写入，避免文件 mtime 变动导致 `updated_option: mtime` 下的"最近更新"失真。
+- 同步结束后自动清理 `source/travels/` 下已无对应地点的残留目录。
+- slug 默认取叶子目录名；出现同名地点时，冲突的地点自动改用全路径 slug。
+- `COORDS` 支持两种 key：完整相对路径（优先）和叶子目录名（兜底）。
+
 ### `tools/generate_toc.py`
 
 生成 README.md 中的目录树（`<!-- TOC:START -->` 到 `<!-- TOC:END -->` 之间）。GitHub Actions 在推送到 `JourneyForTawel` 时自动运行。
@@ -65,7 +74,7 @@
 
 全屏足迹地图，使用 Leaflet + OpenStreetMap 瓦片。侧边栏目录树支持展开/折叠，叶子节点点击飞到地图对应位置。
 
-动态从 `site.pages` 读取 `lat`/`lng` front-matter 生成标记点。新地点需在 `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典中添加坐标。
+`map.ejs` 是页面片段，由 `layout.ejs` 包裹（对 `layout: map` 页面跳过站点 header/footer，Leaflet CSS 在 layout head 中按需加载）。动态从 `site.pages` 读取 `lat`/`lng` front-matter 生成标记点。新地点需在 `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典中添加坐标（完整相对路径 key 优先，叶子目录名兜底）。
 
 ### `themes/journey/layout/travels-index.ejs`
 
@@ -78,8 +87,9 @@ destinations/Asia/China/Guangxi/Guilin/README.md
   │
   ▼  python3 tools/sync_travels_to_hexo.py
   │
-source/travels/guilin/index.md  （添加 front-matter, 替换 ./tips.md → ./tips）
-source/travels/guilin/tips.md   （同步 tips.md）
+source/travels/guilin/index.md   （添加 front-matter, 替换 ./tips.md → ./tips.html）
+source/travels/guilin/tips.md    （同步 tips.md）
+source/travels/guilin/photos/    （拷贝照片目录）
   │
   ▼  npx hexo generate
   │

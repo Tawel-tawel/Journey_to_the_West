@@ -1,5 +1,9 @@
 <!doctype html>
 <html lang="<%= config.language || 'zh-CN' %>">
+<%
+  // Map pages render their own full-screen chrome; skip the site header/footer.
+  const isMap = page.layout === 'map';
+%>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,9 +11,13 @@
   <meta name="description" content="<%= page.description || config.description || '' %>">
   <meta name="keywords" content="<%= (page.tags ? page.tags.map(function(t){return t.name}).join(', ') : '') || config.keywords || '' %>">
   <%- css('css/style') %>
+  <% if (isMap) { %>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+  <% } %>
   <%- js('js/index') %>
 </head>
 <body>
+  <% if (!isMap) { %>
   <header class="site-header">
     <nav class="nav">
       <a class="brand" href="<%- url_for('/') %>">
@@ -27,11 +35,13 @@
       </div>
     </nav>
   </header>
+  <% } %>
 
-  <main class="site-main">
+  <main class="site-main<%= isMap ? ' site-main--full' : '' %>">
     <%- body %>
   </main>
 
+  <% if (!isMap) { %>
   <footer class="site-footer">
     <div class="footer-inner">
       <p>© <%= new Date().getFullYear() %> <%= config.author %>. 用脚步丈量世界，用 Git 管理记忆。</p>
@@ -44,5 +54,6 @@
       <% } %>
     </div>
   </footer>
+  <% } %>
 </body>
 </html>

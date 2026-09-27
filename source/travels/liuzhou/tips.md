@@ -1,5 +1,5 @@
 ---
-title: 柳州 · 攻略
+title: "柳州 · 攻略"
 layout: page
 ---
 

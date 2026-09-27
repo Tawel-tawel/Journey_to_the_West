@@ -1,17 +1,17 @@
 ---
-title: 北京
+title: "北京"
 date: 2026-06-25
 layout: post
-continent: 亚洲
-country: 中国
+continent: "亚洲"
+country: "中国"
 categories:
   - travel
 tags:
-  - 中国
+  - "中国"
 hierarchy:
-  - 亚洲
-  - 中国
-  - 北京
+  - "亚洲"
+  - "中国"
+  - "北京"
 desc: "这里用于整理北京的旅行照片、游览流程和城市印象"
 lat: 39.9042
 lng: 116.4074
@@ -30,4 +30,4 @@ lng: 116.4074
 
 ## Guide
 
-- [攻略小贴士](./tips)
+- [攻略小贴士](./tips.html)

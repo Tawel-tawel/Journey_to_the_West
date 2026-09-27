@@ -1,5 +1,5 @@
 ---
-title: 锦里 · 攻略
+title: "锦里 · 攻略"
 layout: page
 ---
 

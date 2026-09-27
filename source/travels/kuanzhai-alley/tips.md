@@ -1,5 +1,5 @@
 ---
-title: 宽窄巷子 · 攻略
+title: "宽窄巷子 · 攻略"
 layout: page
 ---
 

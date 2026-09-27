@@ -1,5 +1,5 @@
 ---
-title: 北京 · 攻略
+title: "北京 · 攻略"
 layout: page
 ---
 

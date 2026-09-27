@@ -1,18 +1,18 @@
 ---
-title: 柳州
+title: "柳州"
 date: 2026-06-25
 layout: post
-continent: 亚洲
-country: 中国
+continent: "亚洲"
+country: "中国"
 categories:
   - travel
 tags:
-  - 中国
+  - "中国"
 hierarchy:
-  - 亚洲
-  - 中国
-  - 广西
-  - 柳州
+  - "亚洲"
+  - "中国"
+  - "广西"
+  - "柳州"
 desc: "这里用于整理柳州的旅行照片、游览流程和城市印象"
 lat: 24.3263
 lng: 109.428
@@ -31,4 +31,4 @@ lng: 109.428
 
 ## Guide
 
-- [攻略小贴士](./tips)
+- [攻略小贴士](./tips.html)

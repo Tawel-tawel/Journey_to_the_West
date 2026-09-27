@@ -8,10 +8,26 @@ directory path, reads the actual title from the first `# ` heading, and
 writes/overwrites the corresponding Hexo page under SOURCE_TRAVELS.
 
 Hand-written Hexo pages outside the travel set are never touched.
+
+Behaviour notes:
+- Any destination directory that has its own content (tips.md or a non-empty
+  photos/ folder) is synced, even when it also has sub-destinations.
+- Files are only rewritten when their content actually changes, so that
+  `updated_option: mtime` in _config.yml keeps reflecting real edits.
+- photos/ folders are copied next to the generated page, so image links like
+  `./photos/01.jpg` work both on the site and on GitHub.
+- Stale page directories (e.g. after a destination was renamed or removed)
+  and stale tips.md / photos/ copies are cleaned up automatically.
+- Leaf slugs are the directory name; if two destinations share the same leaf
+  name, the colliding ones fall back to a full-path slug to stay unique.
+- COORDS accepts both full relative paths ("Asia/China/Guangxi/Guilin") and
+  bare leaf names ("Guilin"); the full path wins on conflict.
 """
 
 from __future__ import annotations
 import re
+import shutil
+from collections import Counter
 from datetime import date as Date
 
 from dataclasses import dataclass
@@ -20,6 +36,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEST_ROOT = ROOT / "destinations"
 SOURCE_TRAVELS = ROOT / "source" / "travels"
+
+# Files that do not count as real content inside photos/ folders.
+JUNK_FILES = {".gitkeep", ".DS_Store"}
 
 CONTINENT_MAP = {
     "Asia": "亚洲",
@@ -30,8 +49,6 @@ CONTINENT_MAP = {
     "Oceania": "大洋洲",
     "Antarctica": "南极洲",
 }
-
-
 
 
 NAME_MAP = {
@@ -55,7 +72,19 @@ NAME_MAP = {
     "Jiuzhaigou": "九寨沟",
 }
 
+# Keyed by full relative path (preferred) or bare leaf name (fallback).
 COORDS = {
+    "Asia/China/Guangxi/Guilin":   (25.2736, 110.2900),
+    "Asia/China/Guangxi/Liuzhou":  (24.3263, 109.4280),
+    "Asia/China/Hainan/Haikou":    (20.0440, 110.3580),
+    "Asia/China/Sichuan/Chengdu/Jinli": (30.6476, 104.0478),
+    "Asia/China/Sichuan/Chengdu/Kuanzhai_Alley": (30.6716, 104.0580),
+    "Asia/China/Sichuan/Aba/Jiuzhaigou": (33.2611, 104.2386),
+    "Asia/China/Beijing":          (39.9042, 116.4074),
+    "Asia/China/Jilin/Changchun":  (43.8966, 125.3262),
+    "Asia/China/Jilin/Songyuan":   (45.1298, 124.8260),
+    "Asia/China/Jilin/Jilin_City": (43.8378, 126.5486),
+    # Legacy leaf-name keys, kept as fallback:
     "Guilin":       (25.2736, 110.2900),
     "Liuzhou":      (24.3263, 109.4280),
     "Haikou":       (20.0440, 110.3580),
@@ -71,6 +100,12 @@ COORDS = {
 
 def chinese_name(name: str) -> str:
     return NAME_MAP.get(name, display_name(name))
+
+
+def yaml_str(value: str) -> str:
+    """Quote a string for safe use as a YAML scalar."""
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 @dataclass(frozen=True)
@@ -131,18 +166,25 @@ def read_desc(readme: Path) -> str:
     return ""
 
 
-def is_leaf_destination(leaf: Path) -> bool:
-    has_content = (leaf / "tips.md").exists() or ((leaf / "photos").exists() and any((leaf / "photos").iterdir()))
-    if not has_content:
+def has_real_content(directory: Path) -> bool:
+    """True if the directory exists and holds at least one non-junk entry."""
+    if not directory.exists():
         return False
-    for child in leaf.iterdir():
-        if child.is_dir() and (child / "README.md").exists() and ((child / "tips.md").exists() or ((child / "photos").exists() and any((child / "photos").iterdir()))):
-            return False
-    return True
+    return any(entry.name not in JUNK_FILES for entry in directory.iterdir())
 
 
-def discover_travels() -> list[Travel]:
-    travels: list[Travel] = []
+def is_leaf_destination(leaf: Path) -> bool:
+    """A directory is synced when it has its own content (tips.md or photos).
+
+    Since v2, directories that ALSO have sub-destinations are synced too
+    (e.g. 阿坝州 with its own tips.md plus a 九寨沟 child) — they become a
+    page of their own and appear in the tree as a clickable branch.
+    """
+    return (leaf / "tips.md").exists() or has_real_content(leaf / "photos")
+
+
+def discover_travels() -> list[tuple[Travel, tuple[str, ...]]]:
+    candidates: list[tuple[tuple[str, ...], Path]] = []
     for readme in DEST_ROOT.rglob("README.md"):
         leaf = readme.parent
         if not is_leaf_destination(leaf):
@@ -151,16 +193,28 @@ def discover_travels() -> list[Travel]:
         parts = rel.parts
         if len(parts) < 2:
             continue
+        candidates.append((parts, readme))
+
+    # Leaf-name slugs first; disambiguate duplicates with a full-path slug.
+    leaf_counts = Counter(slugify(parts[-1]) for parts, _ in candidates)
+
+    travels: list[tuple[Travel, tuple[str, ...]]] = []
+    for parts, readme in candidates:
+        leaf_slug = slugify(parts[-1])
+        if leaf_counts[leaf_slug] > 1:
+            slug = slugify("-".join(parts))
+        else:
+            slug = leaf_slug
 
         title = NAME_MAP.get(parts[-1], read_title(readme) or display_name(parts[-1]))
         country_chinese = chinese_name(parts[1])
         hierarchy = [chinese_name(p) for p in parts]
-        coords = COORDS.get(parts[-1], (None, None))
+        coords = COORDS.get("/".join(parts), COORDS.get(parts[-1], (None, None)))
 
         hier_tuple = tuple(hierarchy)
         travels.append((Travel(
             title=title,
-            slug=slugify(parts[-1]),
+            slug=slug,
             source=readme,
             tags=(country_chinese,),
             continent=CONTINENT_MAP.get(parts[0], parts[0]),
@@ -173,21 +227,20 @@ def discover_travels() -> list[Travel]:
 
 
 def front_matter(travel: Travel, hierarchy: tuple[str, ...] = (), existing_date: str = "") -> str:
-    tags = "\n".join(f"  - {tag}" for tag in travel.tags)
-    hier = "\n".join(f"  - {h}" for h in hierarchy)
+    tags = "\n".join(f"  - {yaml_str(tag)}" for tag in travel.tags)
+    hier = "\n".join(f"  - {yaml_str(h)}" for h in hierarchy)
     lat_line = f"lat: {travel.lat}\n" if travel.lat is not None else ""
     lng_line = f"lng: {travel.lng}\n" if travel.lng is not None else ""
     desc_line = ""
     if travel.desc:
-        safe = travel.desc.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
-        desc_line = f'desc: "{safe}"\n'
+        desc_line = f"desc: {yaml_str(travel.desc)}\n"
     date_line = existing_date or Date.today().isoformat()
     return f"""---
-title: {travel.title}
+title: {yaml_str(travel.title)}
 date: {date_line}
 layout: post
-continent: {travel.continent}
-country: {travel.country}
+continent: {yaml_str(travel.continent)}
+country: {yaml_str(travel.country)}
 categories:
   - travel
 tags:
@@ -223,7 +276,36 @@ def read_existing_date(target_dir: Path) -> str:
     return m.group(1).strip() if m else ""
 
 
-def sync_travel(travel: Travel, hierarchy: tuple[str, ...] = ()) -> None:
+def write_if_changed(path: Path, content: str) -> bool:
+    """Write only when content differs, keeping mtime (and thus `updated`) stable."""
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        return False
+    path.write_text(content, encoding="utf-8")
+    return True
+
+
+def sync_photos(leaf: Path, target_dir: Path) -> str:
+    """Mirror the destination's photos/ folder into the generated page dir.
+
+    Returns "copied", "removed", or "" when nothing had to happen.
+    """
+    photos_src = leaf / "photos"
+    photos_dst = target_dir / "photos"
+    src_has_photos = has_real_content(photos_src)
+
+    if src_has_photos:
+        if photos_dst.exists():
+            shutil.rmtree(photos_dst)
+        shutil.copytree(photos_src, photos_dst, ignore=shutil.ignore_patterns(*JUNK_FILES))
+        return "copied"
+    if photos_dst.exists():
+        shutil.rmtree(photos_dst)
+        return "removed"
+    return ""
+
+
+def sync_travel(travel: Travel, hierarchy: tuple[str, ...] = ()) -> str:
+    """Sync one destination. Returns "written", "unchanged", or "removed-photos"."""
     if not travel.source.exists():
         raise FileNotFoundError(travel.source)
 
@@ -231,19 +313,45 @@ def sync_travel(travel: Travel, hierarchy: tuple[str, ...] = ()) -> None:
     target_dir.mkdir(parents=True, exist_ok=True)
     body = strip_first_heading(travel.source.read_text(encoding="utf-8"))
     body = clean_body(body)
-    body = body.replace("./tips.md", "./tips")
+    body = body.replace("./tips.md", "./tips.html")
     existing_date = read_existing_date(target_dir)
-    (target_dir / "index.md").write_text(front_matter(travel, hierarchy, existing_date) + body, encoding="utf-8")
+    index_written = write_if_changed(
+        target_dir / "index.md", front_matter(travel, hierarchy, existing_date) + body
+    )
 
     tips_src = travel.source.parent / "tips.md"
+    tips_dst = target_dir / "tips.md"
+    tips_written = False
     if tips_src.exists():
         tips_fm = f"""---
-title: {travel.title} · 攻略
+title: {yaml_str(f"{travel.title} · 攻略")}
 layout: page
 ---
 
 """
-        (target_dir / "tips.md").write_text(tips_fm + tips_src.read_text(encoding="utf-8"), encoding="utf-8")
+        tips_written = write_if_changed(tips_dst, tips_fm + tips_src.read_text(encoding="utf-8"))
+    elif tips_dst.exists():
+        tips_dst.unlink()
+
+    photos_status = sync_photos(travel.source.parent, target_dir)
+
+    if index_written or tips_written or photos_status == "copied":
+        return "written"
+    if photos_status == "removed":
+        return "removed-photos"
+    return "unchanged"
+
+
+def cleanup_stale_dirs(valid_slugs: set[str]) -> list[str]:
+    """Remove page directories that no longer map to any destination."""
+    removed: list[str] = []
+    if not SOURCE_TRAVELS.exists():
+        return removed
+    for child in SOURCE_TRAVELS.iterdir():
+        if child.is_dir() and child.name not in valid_slugs:
+            shutil.rmtree(child)
+            removed.append(child.name)
+    return removed
 
 
 def main() -> None:
@@ -260,8 +368,18 @@ def main() -> None:
     else:
         print(f"OK: all {len(travels)} destinations have coordinates.")
 
-    for travel, hierarchy in travels:
-        sync_travel(travel, hierarchy)
+    counts = Counter(sync_travel(travel, hierarchy) for travel, hierarchy in travels)
+
+    removed = cleanup_stale_dirs({t.slug for t, _ in travels})
+    for name in removed:
+        print(f"CLEANUP: removed stale page directory source/travels/{name}/")
+
+    print(
+        f"Synced {len(travels)} destinations: "
+        f"{counts.get('written', 0)} written, "
+        f"{counts.get('unchanged', 0)} unchanged, "
+        f"{counts.get('removed-photos', 0)} photo-only cleanup."
+    )
 
 
 if __name__ == "__main__":

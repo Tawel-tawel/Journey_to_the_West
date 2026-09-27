@@ -46,6 +46,8 @@ destinations/Asia/Japan/Tokyo/Tokyo/tips.md
 destinations/Asia/China/Beijing/Beijing/README.md
 ```
 
+**中间层级也可以是目的地**：只要目录有自己的内容（`tips.md` 或非空 `photos/`），即使下面还有子地点，也会生成自己的页面。例如 `Aba/` 有 tips.md、`Aba/Jiuzhaigou/` 是子地点，则阿坝州在足迹树里是可点击的分支（既进自己的游记，也展开九寨沟）。只有 README、没有 tips/照片 的目录仅作为层级节点，不生成页面。
+
 如果地点直接在城市下（如成都的锦里）：
 
 ```
@@ -55,12 +57,17 @@ destinations/Asia/China/Sichuan/Chengdu/Jinli/README.md
 ### 坐标（用于地图）
 
 在 `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典中添加坐标，格式为 `"目录名": (纬度, 经度)`。
+脚本优先用「完整相对路径」匹配（如 `"Asia/Japan/Tokyo/Tokyo"`），再用叶子目录名兜底；同名地点建议用完整路径。
+
+### 照片
+
+`photos/` 目录会被脚本自动拷贝到博客页面对应位置（`.gitkeep`、`.DS_Store` 不算内容），正文直接用 `![描述](./photos/01.jpg)` 引用即可。删除照片后重新同步，博客侧的旧照片会一并清理。
 
 ### 游记内容（README.md）
 
 第一行用 `# 标题` 作为一级标题（脚本会自动去掉这行，用 front-matter 的 title 替代）。
 
-可以在正文中使用 `./tips.md` 链接到攻略页（脚本会自动替换为 `./tips`）。
+可以在正文中使用 `./tips.md` 链接到攻略页（脚本会自动替换为 `./tips.html`，避免 GitHub Pages 上无扩展名 URL 404）。
 
 ### 攻略内容（tips.md）
 
@@ -109,10 +116,10 @@ npx hexo clean && npx hexo generate
 - [ ] tips.md 已同步（如果存在）
 - [ ] README.md 的 TOC 已更新
 - [ ] `docs/world_map.md` 已添加新链接
-- [ ] 游记内容中有 `./tips.md` 链接的都被替换为 `./tips`
-- [ ] `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典已添加新地点的坐标**
+- [ ] 游记内容中有 `./tips.md` 链接的都被替换为 `./tips.html`
+- [ ] `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典已添加新地点的坐标
 
-> ** 地图坐标存在 `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典中，添加新地点后记得在这里添加坐标 `"Slug": (lat, lng)`。
+> 地图坐标存在 `tools/sync_travels_to_hexo.py` 的 `COORDS` 字典中，添加新地点后记得在这里添加坐标 `"目录名": (lat, lng)`；同名地点用完整相对路径作 key。
 
 ## 四、部署上线
 
@@ -133,3 +140,4 @@ npx hexo clean && npx hexo deploy
 3. 不要修改 `.github/workflows/` 中的 GitHub Actions。
 4. 照片放在 `photos/` 目录中，正文用 Markdown 图片语法引用（`![描述](./photos/01.jpg)`）。
 5. 所有 Python 脚本在 `tools/` 目录下运行（以根目录为 `..`）。
+6. 媒体文件（heic/mov/mp4 等）现在**可以提交**（不再被 .gitignore 忽略），但注意：GitHub 单文件上限 100MB、大文件会拖慢仓库；视频建议传 B 站后在正文嵌入，照片建议压缩为 jpg/webp 再入库。

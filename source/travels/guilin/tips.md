@@ -1,5 +1,5 @@
 ---
-title: 桂林 · 攻略
+title: "桂林 · 攻略"
 layout: page
 ---
 

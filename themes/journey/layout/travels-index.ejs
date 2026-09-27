@@ -53,8 +53,7 @@
     sortTree(root);
 
     function leafCount(node) {
-      if (node.page && node.ch.length === 0) return 1;
-      var c = 0;
+      var c = node.page ? 1 : 0;
       if (node.ch) node.ch.forEach(function(n){ c += leafCount(n); });
       return c;
     }
@@ -78,7 +77,11 @@
           <div class="travel-tree-label branch">
             <span class="travel-tree-toggle">▶</span>
             <span class="travel-tree-icon"><%= icon(depth) %></span>
-            <%= child.n %>
+            <% if (child.page) { %>
+              <a href="<%- url_for(child.page.path) %>" title="查看本页游记"><%= child.page.title %></a>
+            <% } else { %>
+              <%= child.n %>
+            <% } %>
             <span class="travel-tree-count"><%= leafCount(child) %> 个地点</span>
           </div>
           <% recurse(child.ch, depth + 1); %>
