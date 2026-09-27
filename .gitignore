@@ -234,3 +234,4 @@ public/
 .deploy_git/
 db.json
 .env.local
+.workbuddy/
